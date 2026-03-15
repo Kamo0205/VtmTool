@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="130"
+        x:Class="VtmTool.UI.ConfirmDialog"
+        Title="Confirm"
+		CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#1a1a1a"
+        Foreground="#e0e0e0"
+        FontFamily="Consolas,Courier New,monospace">
+	<StackPanel Margin="24" Spacing="20">
+		<TextBlock x:Name="MessageText"
+                   FontSize="13"
+                   TextWrapping="Wrap"
+                   Foreground="#e0e0e0"/>
+		<StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+			<Button Content="Cancel"
+                    Background="#2a2a2a"
+                    Foreground="#e0e0e0"
+                    BorderBrush="#444"
+                    Padding="14,7"
+                    Click="OnCancel"/>
+			<Button Content="Delete"
+                    Background="#5a0000"
+                    Foreground="#fff"
+                    BorderBrush="#900000"
+                    Padding="14,7"
+                    Click="OnConfirm"/>
+		</StackPanel>
+	</StackPanel>
+</Window>
