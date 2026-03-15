@@ -3,7 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="640"
-        x:Class="VtmTool.UI.Creationwizard"
+        x:Class="VtmTool.UI.CreationWizard"
         Title="New Character"
 		WindowStartupLocation="CenterOwner"
         Background="#1a1a1a"
