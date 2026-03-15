@@ -63,6 +63,7 @@ public partial class CreationWizard : Window
     public CreationWizard()
     {
         InitializeComponent();
+        ShowStep(0);
     }
 
     // Step routing
