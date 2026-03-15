@@ -1,19 +1,17 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="VtmTool.UI.MainWindow"
-        Title="VtM V5 — Character Tool">
+        Title="VtM V5 — Character Tool"
+        Width="1100" Height="780"
+        MinWidth="800" MinHeight="600"
+        Background="#1a1a1a">
+
 	<Window.Styles>
-		<!-- Base text -->
 		<Style Selector="TextBlock">
 			<Setter Property="Foreground" Value="#e0e0e0"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
 			<Setter Property="FontSize" Value="13"/>
 		</Style>
-
-		<!-- Section headers -->
 		<Style Selector="TextBlock.section">
 			<Setter Property="Foreground" Value="#b00000"/>
 			<Setter Property="FontSize" Value="11"/>
@@ -21,22 +19,16 @@
 			<Setter Property="LetterSpacing" Value="2"/>
 			<Setter Property="Margin" Value="0,12,0,4"/>
 		</Style>
-
-		<!-- Character name heading -->
 		<Style Selector="TextBlock.charName">
 			<Setter Property="Foreground" Value="#ffffff"/>
 			<Setter Property="FontSize" Value="20"/>
 			<Setter Property="FontWeight" Value="Bold"/>
 		</Style>
-
-		<!-- Subtitle line (clan · gen · humanity) -->
 		<Style Selector="TextBlock.subtitle">
 			<Setter Property="Foreground" Value="#999"/>
 			<Setter Property="FontSize" Value="12"/>
 			<Setter Property="Margin" Value="0,2,0,0"/>
 		</Style>
-
-		<!-- Sidebar character list item -->
 		<Style Selector="Button.charItem">
 			<Setter Property="Background" Value="Transparent"/>
 			<Setter Property="BorderThickness" Value="0"/>
@@ -51,8 +43,6 @@
 		<Style Selector="Button.charItem.selected /template/ ContentPresenter">
 			<Setter Property="Background" Value="#2e0000"/>
 		</Style>
-
-		<!-- Action buttons -->
 		<Style Selector="Button.action">
 			<Setter Property="Background" Value="#2a0000"/>
 			<Setter Property="Foreground" Value="#e0e0e0"/>
@@ -66,12 +56,6 @@
 		<Style Selector="Button.action:pointerover /template/ ContentPresenter">
 			<Setter Property="Background" Value="#3d0000"/>
 		</Style>
-		<Style Selector="Button.action:disabled /template/ ContentPresenter">
-			<Setter Property="Background" Value="#1a1a1a"/>
-			<Setter Property="Opacity" Value="0.4"/>
-		</Style>
-
-		<!-- New character button — slightly brighter -->
 		<Style Selector="Button.primary">
 			<Setter Property="Background" Value="#5a0000"/>
 			<Setter Property="Foreground" Value="#ffffff"/>
@@ -86,35 +70,25 @@
 		<Style Selector="Button.primary:pointerover /template/ ContentPresenter">
 			<Setter Property="Background" Value="#750000"/>
 		</Style>
-
-		<!-- Stat label (left-aligned, fixed width) -->
 		<Style Selector="TextBlock.statLabel">
 			<Setter Property="Foreground" Value="#aaa"/>
 			<Setter Property="Width" Value="110"/>
 			<Setter Property="FontSize" Value="12"/>
 		</Style>
-
-		<!-- Dot display -->
 		<Style Selector="TextBlock.dots">
 			<Setter Property="Foreground" Value="#cc2200"/>
 			<Setter Property="FontSize" Value="13"/>
 			<Setter Property="VerticalAlignment" Value="Center"/>
 		</Style>
-
-		<!-- Damage track -->
 		<Style Selector="TextBlock.track">
 			<Setter Property="FontSize" Value="12"/>
 			<Setter Property="VerticalAlignment" Value="Center"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
 		</Style>
-
-		<!-- Hunger track red -->
 		<Style Selector="TextBlock.hunger">
 			<Setter Property="Foreground" Value="#cc0000"/>
 			<Setter Property="FontSize" Value="13"/>
 		</Style>
-
-		<!-- Empty placeholder text -->
 		<Style Selector="TextBlock.placeholder">
 			<Setter Property="Foreground" Value="#444"/>
 			<Setter Property="FontSize" Value="14"/>
@@ -122,54 +96,61 @@
 			<Setter Property="VerticalAlignment" Value="Center"/>
 		</Style>
 	</Window.Styles>
-	
+
 	<Grid ColumnDefinitions="220,1,*">
-		<!-- Left Sidebar - Character list -->
+
+		<!-- LEFT SIDEBAR -->
 		<DockPanel Grid.Column="0" Background="#111">
-			<!-- New character button pinned to the top -->
-			<Button Classes="primary" DockPanel.Dock="Top" Margin="10,10,10,4" Click="OnNewCharacter">+ New Character</Button>
-
-			<Rectangle DockPanel.Dock="Top" Height="1" Fill="#333" Margin="10,4"/>
-
-			<!-- Scrollabale character list -->
+			<Button Classes="primary"
+                    DockPanel.Dock="Top"
+                    Margin="10,10,10,4"
+                    Click="OnNewCharacter">
+				+ New Character
+			</Button>
+			<Separator DockPanel.Dock="Top" Margin="10,4" Background="#2a2a2a" Height="1"/>
 			<ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto">
-				<StackPanel x:Name="CharacterList" Margin="0,0,0,10" Spacing="1"/>
+				<StackPanel x:Name="CharacterList" Spacing="1"/>
 			</ScrollViewer>
 		</DockPanel>
-		
-		<!-- Divider line -->
-        <Rectangle Grid.Column="1" Fill="#2a2a2a"/>
 
-		<!-- Right panel - character sheet or empty state -->
+		<Rectangle Grid.Column="1" Fill="#2a2a2a"/>
+
+		<!-- RIGHT PANEL -->
 		<Grid Grid.Column="2">
-			<!-- Empty state — shown when no character selected -->
-			<TextBlock x:Name="EmptyState" Classes="placeholder" Text="Select or create a character"/>
 
-			<!-- Character sheet — hidden until a character is loaded -->
-			<DockPanel x:Name="SheetPanel" IsVisible="False" Margin="24,20,24,20">
-				<!-- Action toolbar pinned to bottom -->
-				<StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
-					<Button Classes="action" Click="OnRouse">Rouse Check</Button>
-					<Button Classes="action" Click="OnDamage">Apply Damage</Button>
-					<Button Classes="action" Click="OnHeal">Heal</Button>
-					<Button Classes="action" Click="OnEditAttr">Edit Attributes</Button>
-					<Button Classes="action" Click="OnEditSkills">Edit Skills</Button>
-					<Button Classes="action" Click="OnDelete">Delete</Button>
-				</StackPanel>
+			<TextBlock x:Name="EmptyState"
+                       Classes="placeholder"
+                       Text="Select or create a character"/>
 
-				<!-- Scrollable sheet content -->
+			<DockPanel x:Name="SheetPanel"
+                       IsVisible="False"
+                       Margin="24,20,24,20">
+
+				<!-- Action toolbar -->
+				<WrapPanel DockPanel.Dock="Bottom"
+                           Orientation="Horizontal"
+                           Margin="0,16,0,0">
+					<Button Classes="action" Margin="0,0,6,6" Click="OnRouse">Rouse Check</Button>
+					<Button Classes="action" Margin="0,0,6,6" Click="OnDamage">Apply Damage</Button>
+					<Button Classes="action" Margin="0,0,6,6" Click="OnHeal">Heal</Button>
+					<Button Classes="action" Margin="0,0,6,6" Click="OnEditAttr">Edit Attributes</Button>
+					<Button Classes="action" Margin="0,0,6,6" Click="OnEditSkills">Edit Skills</Button>
+					<Button Classes="action" Margin="0,0,6,6" Click="OnEditDisciplines">Edit Disciplines</Button>
+					<Button Classes="action" Margin="0,0,0,6" Click="OnDelete">Delete</Button>
+				</WrapPanel>
+
+				<!-- Sheet content -->
 				<ScrollViewer VerticalScrollBarVisibility="Auto">
 					<StackPanel Spacing="0">
-						<!-- Identity block -->
+
+						<!-- Identity -->
 						<TextBlock x:Name="SheetName" Classes="charName"/>
 						<TextBlock x:Name="SheetSubtitle" Classes="subtitle"/>
 						<TextBlock x:Name="SheetBloodPotency" Classes="subtitle" Margin="0,2,0,0"/>
 
-						<!-- ── ATTRIBUTES ── -->
+						<!-- ATTRIBUTES -->
 						<TextBlock Classes="section" Text="ATTRIBUTES"/>
-						<Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto">
-
-							<!-- Physical -->
+						<Grid ColumnDefinitions="*,*,*">
 							<StackPanel Grid.Column="0" Spacing="3">
 								<StackPanel Orientation="Horizontal">
 									<TextBlock Classes="statLabel" Text="Strength"/>
@@ -184,8 +165,6 @@
 									<TextBlock x:Name="AttrStamina" Classes="dots"/>
 								</StackPanel>
 							</StackPanel>
-
-							<!-- Social -->
 							<StackPanel Grid.Column="1" Spacing="3">
 								<StackPanel Orientation="Horizontal">
 									<TextBlock Classes="statLabel" Text="Charisma"/>
@@ -200,8 +179,6 @@
 									<TextBlock x:Name="AttrComposure" Classes="dots"/>
 								</StackPanel>
 							</StackPanel>
-
-							<!-- Mental -->
 							<StackPanel Grid.Column="2" Spacing="3">
 								<StackPanel Orientation="Horizontal">
 									<TextBlock Classes="statLabel" Text="Intelligence"/>
@@ -216,14 +193,11 @@
 									<TextBlock x:Name="AttrResolve" Classes="dots"/>
 								</StackPanel>
 							</StackPanel>
-
 						</Grid>
 
-						<!-- ── SKILLS ── -->
+						<!-- SKILLS -->
 						<TextBlock Classes="section" Text="SKILLS"/>
 						<Grid ColumnDefinitions="*,*,*">
-
-							<!-- Physical skills -->
 							<StackPanel Grid.Column="0" Spacing="3">
 								<StackPanel Orientation="Horizontal">
 									<TextBlock Classes="statLabel" Text="Athletics"/>
@@ -262,8 +236,6 @@
 									<TextBlock x:Name="SkillSurvival" Classes="dots"/>
 								</StackPanel>
 							</StackPanel>
-
-							<!-- Social skills -->
 							<StackPanel Grid.Column="1" Spacing="3">
 								<StackPanel Orientation="Horizontal">
 									<TextBlock Classes="statLabel" Text="Animal Ken"/>
@@ -302,8 +274,6 @@
 									<TextBlock x:Name="SkillSubterfuge" Classes="dots"/>
 								</StackPanel>
 							</StackPanel>
-
-							<!-- Mental skills -->
 							<StackPanel Grid.Column="2" Spacing="3">
 								<StackPanel Orientation="Horizontal">
 									<TextBlock Classes="statLabel" Text="Academics"/>
@@ -342,10 +312,14 @@
 									<TextBlock x:Name="SkillTechnology" Classes="dots"/>
 								</StackPanel>
 							</StackPanel>
-
 						</Grid>
 
-						<!-- ── HEALTH & WILLPOWER ── -->
+						<!-- DISCIPLINES -->
+						<TextBlock Classes="section" Text="DISCIPLINES"/>
+						<!-- DisciplinePanel is rebuilt on every RefreshSheet call -->
+						<StackPanel x:Name="DisciplinePanel" Spacing="6"/>
+
+						<!-- HEALTH & WILLPOWER -->
 						<TextBlock Classes="section" Text="HEALTH &amp; WILLPOWER"/>
 						<StackPanel Spacing="6">
 							<StackPanel Orientation="Horizontal" Spacing="10">
@@ -359,12 +333,17 @@
 							</StackPanel>
 						</StackPanel>
 
-						<!-- ── HUNGER ── -->
+						<!-- HUNGER -->
 						<TextBlock Classes="section" Text="HUNGER"/>
 						<TextBlock x:Name="TrackHunger" Classes="hunger"/>
 
-						<!-- Status message (rouse result, damage applied etc.) -->
-						<TextBlock x:Name="StatusMsg" Foreground="#888" FontSize="12" Margin="0,14,0,0" TextWrapping="Wrap"/>
+						<!-- Status message -->
+						<TextBlock x:Name="StatusMsg"
+                                   Foreground="#888"
+                                   FontSize="12"
+                                   Margin="0,14,0,0"
+                                   TextWrapping="Wrap"/>
+
 					</StackPanel>
 				</ScrollViewer>
 			</DockPanel>

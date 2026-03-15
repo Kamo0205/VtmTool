@@ -13,6 +13,7 @@ namespace VtmTool.UI;
 public partial class MainWindow : Window
 {
     private readonly List<Character> _characters = new();
+    private readonly List<List<Discipline>> _disciplines = new();
     int _selectedIdx = -1;
     readonly Random _rng = new();
 
@@ -20,7 +21,16 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         Db.Init();
-        _characters.AddRange(Db.LoadAll());
+
+        var chars = Db.LoadAll();
+        var discMap = Db.LoadAllDisciplines();
+
+        foreach (var c in chars)
+        {
+            _characters.Add(c);
+            _disciplines.Add(discMap.TryGetValue(c.Id, out var d) ? d : new List<Discipline>());
+        }
+
         RebuildList();
     }
 
@@ -90,12 +100,12 @@ public partial class MainWindow : Window
         SheetPanel.IsVisible = hasChar;
 
         if (hasChar)
-            RefreshSheet(_characters[idx]);
+            RefreshSheet(_characters[idx], _disciplines[idx]);
     }
 
     // Redraw every named TextBlock from the current Character value.
     // This is the immediate-mode render: data in → display out, no retained state.
-    void RefreshSheet(in Character c)
+    void RefreshSheet(in Character c, List<Discipline> disciplines)
     {
         // Identity
         SheetName.Text = c.Name;
@@ -151,6 +161,62 @@ public partial class MainWindow : Window
 
         // Hunger
         TrackHunger.Text = HungerTrack(c.Hunger) + $"  {c.Hunger}/5";
+
+        // Disciplines — panel is cleared and rebuilt every render.
+        // This is the same immediate-mode principle as the rest of the sheet:
+        // the panel has no memory of what it showed last frame.
+        DisciplinePanel.Children.Clear();
+        if (disciplines.Count == 0)
+        {
+            DisciplinePanel.Children.Add(new TextBlock
+            {
+                Text = "None",
+                Foreground = new SolidColorBrush(Color.Parse("#555")),
+                FontSize = 12,
+            });
+        }
+        else
+        {
+            // Lay out disciplines in a three-column grid regardless of count.
+            // At creation there are always 1–3; "Edit Disciplines" can produce more
+            // if we ever allow out-of-clan disciplines in a future version.
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+            grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+            grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+
+            int rowCount = (disciplines.Count + 2) / 3;
+            for (int r = 0; r < rowCount; r++)
+                grid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+
+            for (int i = 0; i < disciplines.Count; i++)
+            {
+                var d = disciplines[i];
+                var cell = new StackPanel
+                {
+                    Spacing = 2,
+                    Margin = new Avalonia.Thickness(0, 0, 16, 8),
+                };
+                cell.Children.Add(new TextBlock
+                {
+                    Text = ClanDisciplines.DisplayName(d.Name),
+                    Foreground = new SolidColorBrush(Color.Parse("#aaa")),
+                    FontSize = 12,
+                });
+                cell.Children.Add(new TextBlock
+                {
+                    Text = Dots(d.Rating),
+                    Foreground = new SolidColorBrush(Color.Parse("#cc2200")),
+                    FontSize = 13,
+                });
+
+                Grid.SetColumn(cell, i % 3);
+                Grid.SetRow(cell, i / 3);
+                grid.Children.Add(cell);
+            }
+
+            DisciplinePanel.Children.Add(grid);
+        }
     }
 
     // Mutation helpers
@@ -165,7 +231,7 @@ public partial class MainWindow : Window
         if (CharacterList.Children[_selectedIdx] is Button btn)
             btn.Content = BuildListItemContent(updated);
 
-        RefreshSheet(updated);
+        RefreshSheet(updated, _disciplines[_selectedIdx]);
     }
 
     void SetStatus(string msg) => StatusMsg.Text = msg;
@@ -182,7 +248,10 @@ public partial class MainWindow : Window
         if (wizard.Result is Character created)
         {
             var saved = Db.SaveCharacter(created);
+            var disciplines = Db.ReplaceAllDisciplines(saved.Id, wizard.PendingDisciplines);
+
             _characters.Add(saved);
+            _disciplines.Add(disciplines);
             RebuildList();
             SelectCharacter(_characters.Count - 1);
             SetStatus($"'{saved.Name}' created.");
@@ -263,6 +332,25 @@ public partial class MainWindow : Window
         if (wizard.Result is Character updated) { Commit(updated); SetStatus("Skills updated."); }
     }
 
+    async void OnEditDisciplines(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedIdx < 0) return;
+        var wizard = new CreationWizard(startStep: 5);
+        wizard.SeedClan(_characters[_selectedIdx].Clan);
+        await wizard.ShowDialog(this);
+
+        // wizard.Result will be null if the wizard was cancelled before Finish().
+        // For the discipline-only edit we only care about PendingDisciplines.
+        if (wizard.PendingDisciplines.Count > 0)
+        {
+            var updated = _characters[_selectedIdx];
+            var disciplines = Db.ReplaceAllDisciplines(updated.Id, wizard.PendingDisciplines);
+            _disciplines[_selectedIdx] = disciplines;
+            RefreshSheet(updated, disciplines);
+            SetStatus("Disciplines updated.");
+        }
+    }
+
     async void OnDelete(object? sender, RoutedEventArgs e)
     {
         if (_selectedIdx < 0) return;
@@ -274,6 +362,7 @@ public partial class MainWindow : Window
         
         Db.DeleteCharacter(c.Id);
         _characters.RemoveAt(_selectedIdx);
+        _disciplines.RemoveAt(_selectedIdx);
         _selectedIdx = -1;
         RebuildList();
         SelectCharacter(-1);

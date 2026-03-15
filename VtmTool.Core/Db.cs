@@ -23,7 +23,7 @@ namespace VtmTool.Core;
 /// "vtm.db". It is intended to be used as a central data access layer for character-related operations. All methods
 /// are thread-unsafe and should be called from a single thread or synchronized externally if used
 /// concurrently.</remarks>
-public static class Db
+public static partial class Db
 {
     const string ConnectionString = "Data Source=vtm.db";
 
@@ -79,6 +79,13 @@ public static class Db
                 aggravated_willpower  INTEGER NOT NULL,
                 superficial_willpower INTEGER NOT NULL,
                 hunger                INTEGER NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS discipline (
+                id           INTEGER PRIMARY KEY,
+                character_id INTEGER NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+                name         INTEGER NOT NULL,   -- DisciplineName enum, stored as byte
+                rating       INTEGER NOT NULL    -- 1–5
             );";
 
     // Called once at startup. Creates the DB file and table if absent.

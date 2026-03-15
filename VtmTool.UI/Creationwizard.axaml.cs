@@ -1,11 +1,12 @@
-using Avalonia;
+ï»¿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
+using VtmTool.Core;
 using VtmTool.Core.Enums;
 using VtmTool.Core.Models;
 
@@ -13,9 +14,15 @@ namespace VtmTool.UI;
 
 public partial class CreationWizard : Window
 {
+    // =========================================================================
+    // Results
+    // =========================================================================
     public Character? Result { get; private set; }
+    public List<Discipline> PendingDisciplines { get; } = new(3);
 
-    // Working character — built up step by step
+    // =========================================================================
+    // Working state
+    // =========================================================================
     Character _c = new Character
     {
         Generation = 13,
@@ -24,21 +31,33 @@ public partial class CreationWizard : Window
         Humanity = 7,
     };
 
-    // Step index
     int _step = 0;
 
-    // Per-step input references (cleared and rebuilt on each step)
+    // Step 0
     TextBox? _nameBox;
     ComboBox? _clanBox;
 
-    // Attribute NumericUpDowns — indexed [cat][attr] where cat: 0=phys,1=soc,2=ment
-    readonly NumericUpDown[,] _attrBoxes = new NumericUpDown[3, 3];
+    // Step 1 â€” attribute priority dropdowns
     readonly ComboBox[] _attrPriority = new ComboBox[3];
 
-    // Skill NumericUpDowns — indexed [cat][skill] 0–8
-    readonly NumericUpDown[,] _skillBoxes = new NumericUpDown[3, 9];
+    // Step 2 â€” getValue delegates from dot pickers, indexed [categoryIndex, attrIndex]
+    readonly Func<int>[,] _attrGet = new Func<int>[3, 3];
+    readonly TextBlock[] _attrBudgetLabel = new TextBlock[3];
+
+    // Step 3 â€” skill priority dropdowns
     readonly ComboBox[] _skillPriority = new ComboBox[3];
 
+    // Step 4 â€” getValue delegates from dot pickers, indexed [categoryIndex, skillIndex]
+    readonly Func<int>[,] _skillGet = new Func<int>[3, 9];
+    readonly TextBlock[] _skillBudgetLabel = new TextBlock[3];
+
+    // Step 5 â€” disciplines
+    readonly Func<int>[] _discGet = new Func<int>[3];
+    TextBlock? _discBudgetLabel;
+
+    // =========================================================================
+    // Static data
+    // =========================================================================
     static readonly string[][] AttrNames =
     {
         new[] { "Strength",     "Dexterity",    "Stamina"   },
@@ -48,17 +67,22 @@ public partial class CreationWizard : Window
 
     static readonly string[][] SkillNames =
     {
-        new[] { "Athletics", "Brawl",    "Craft",  "Drive",    "Firearms",
-                "Larceny",   "Melee",    "Stealth","Survival" },
-        new[] { "Animal Ken","Etiquette","Insight","Intimidation","Leadership",
-                "Performance","Persuasion","Streetwise","Subterfuge" },
-        new[] { "Academics", "Awareness","Finance","Investigation","Medicine",
-                "Occult",    "Politics", "Science","Technology" },
+        new[] { "Athletics", "Brawl",      "Craft",  "Drive",          "Firearms",
+                "Larceny",   "Melee",      "Stealth","Survival"                     },
+        new[] { "Animal Ken","Etiquette",  "Insight","Intimidation",   "Leadership",
+                "Performance","Persuasion","Streetwise","Subterfuge"               },
+        new[] { "Academics", "Awareness",  "Finance","Investigation",  "Medicine",
+                "Occult",    "Politics",   "Science","Technology"                   },
     };
 
     static readonly string[] CatLabels = { "Physical", "Social", "Mental" };
     static readonly int[] AttrBudgets = { 5, 4, 3 };
     static readonly int[] SkillBudgets = { 8, 6, 4 };
+
+    // =========================================================================
+    // Constructors
+    // =========================================================================
+    public CreationWizard() : this(0) { }    // required by Avalonia XAML loader
 
     public CreationWizard(int startStep = 0)
     {
@@ -66,7 +90,12 @@ public partial class CreationWizard : Window
         ShowStep(startStep);
     }
 
+    // Seed the clan before showing the discipline step from an edit context.
+    public void SeedClan(Clan clan) => _c.Clan = clan;
+
+    // =========================================================================
     // Step routing
+    // =========================================================================
     void ShowStep(int step)
     {
         _step = step;
@@ -79,34 +108,41 @@ public partial class CreationWizard : Window
             case 2: BuildAttrDotsStep(); break;
             case 3: BuildSkillPrioStep(); break;
             case 4: BuildSkillDotsStep(); break;
-            case 5: BuildReviewStep(); break;
+            case 5: BuildDisciplineStep(); break;
+            case 6: BuildReviewStep(); break;
         }
 
         BackBtn.IsEnabled = step > 0;
-        NextBtn.Content = step == 5 ? "Create" : "Next";
+        NextBtn.Content = step == 6 ? "Create" : "Next";
     }
 
     // =========================================================================
-    // Step 0 — Identity (Name + Clan)
+    // Step 0 â€” Identity
     // =========================================================================
     void BuildIdentityStep()
     {
-        StepTitle.Text = "Step 1 — Identity";
+        StepTitle.Text = "Step 1 â€” Identity";
         StepHint.Text = "Name your character and choose their clan.";
 
-        StepContent.Children.Add(Label("Name"));
+        StepContent.Children.Add(MakeLabel("Name"));
         _nameBox = new TextBox
         {
             Text = _c.Name ?? "",
-            Background = Color("#222"),
-            Foreground = Color("#e0e0e0"),
-            BorderBrush = Color("#444"),
             Watermark = "Character name",
+            Background = Brush("#222"),
+            Foreground = Brush("#e0e0e0"),
+            BorderBrush = Brush("#444"),
         };
         StepContent.Children.Add(_nameBox);
 
-        StepContent.Children.Add(Label("Clan"));
-        _clanBox = new ComboBox { Width = 300, Background = Color("#222"), Foreground = Color("#e0e0e0") };
+        StepContent.Children.Add(MakeLabel("Clan"));
+        _clanBox = new ComboBox
+        {
+            Width = 300,
+            Background = Brush("#222"),
+            Foreground = Brush("#e0e0e0"),
+            BorderBrush = Brush("#444"),
+        };
         foreach (Clan clan in Enum.GetValues<Clan>())
             _clanBox.Items.Add(new ComboBoxItem { Content = ClanDisplayName(clan), Tag = clan });
         _clanBox.SelectedIndex = (int)_c.Clan;
@@ -124,21 +160,27 @@ public partial class CreationWizard : Window
     }
 
     // =========================================================================
-    // Step 1 — Attribute priority selection
+    // Step 1 â€” Attribute priority
     // =========================================================================
     void BuildAttrPrioStep()
     {
-        StepTitle.Text = "Step 2 — Attribute Priority";
-        StepHint.Text = "Primary gets 5 total dots · Secondary 4 · Tertiary 3";
+        StepTitle.Text = "Step 2 â€” Attribute Priority";
+        StepHint.Text = "Primary gets 5 total dots Â· Secondary 4 Â· Tertiary 3";
 
-        string[] prioLabels = { "Primary (total 5)", "Secondary (total 4)", "Tertiary (total 3)" };
+        string[] labels = { "Primary (total 5)", "Secondary (total 4)", "Tertiary (total 3)" };
         for (int i = 0; i < 3; i++)
         {
-            StepContent.Children.Add(Label(prioLabels[i]));
-            var box = new ComboBox { Width = 300, Background = Color("#222"), Foreground = Color("#e0e0e0") };
+            StepContent.Children.Add(MakeLabel(labels[i]));
+            var box = new ComboBox
+            {
+                Width = 300,
+                Background = Brush("#222"),
+                Foreground = Brush("#e0e0e0"),
+                BorderBrush = Brush("#444"),
+            };
             foreach (string cat in CatLabels)
                 box.Items.Add(new ComboBoxItem { Content = cat });
-            box.SelectedIndex = i; // default: Phys/Soc/Ment
+            box.SelectedIndex = i;
             _attrPriority[i] = box;
             StepContent.Children.Add(box);
         }
@@ -157,45 +199,60 @@ public partial class CreationWizard : Window
     }
 
     // =========================================================================
-    // Step 2 — Attribute dot assignment
+    // Step 2 â€” Attribute dots
     // =========================================================================
     void BuildAttrDotsStep()
     {
-        StepTitle.Text = "Step 3 — Assign Attribute Dots";
-        StepHint.Text = "Each attribute minimum 1 · Sum must match priority budget";
+        StepTitle.Text = "Step 3 â€” Assign Attribute Dots";
+        StepHint.Text = "Click dots to set Â· Click active dot to decrement Â· Min 1";
 
         for (int p = 0; p < 3; p++)
         {
             int catIdx = _attrPriority[p].SelectedIndex;
             int budget = AttrBudgets[p];
-            string cat = CatLabels[catIdx];
+            int pCopy = p;
 
-            StepContent.Children.Add(SectionLabel($"{cat}  (total = {budget})"));
+            // Section header + live budget counter
+            var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
+            header.Children.Add(MakeSectionLabel(CatLabels[catIdx]));
+            var budgetLbl = new TextBlock
+            {
+                Text = $"0 / {budget}",
+                FontSize = 11,
+                Foreground = Brush("#666"),
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            _attrBudgetLabel[p] = budgetLbl;
+            header.Children.Add(budgetLbl);
+            StepContent.Children.Add(header);
 
             for (int a = 0; a < 3; a++)
             {
-                var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+                var row = MakeRow();
                 row.Children.Add(new TextBlock
                 {
                     Text = AttrNames[catIdx][a],
                     Width = 130,
                     VerticalAlignment = VerticalAlignment.Center,
-                    Foreground = Color("#aaa"),
+                    Foreground = Brush("#aaa"),
                 });
-                var spin = new NumericUpDown
-                {
-                    Minimum = 1,
-                    Maximum = 5,
-                    Value = 1,
-                    Width = 80,
-                    Background = Color("#222"),
-                    Foreground = Color("#e0e0e0"),
-                };
-                _attrBoxes[catIdx, a] = spin;
-                row.Children.Add(spin);
+                row.Children.Add(MakeDotPicker(
+                    min: 1, max: 5, initial: 1,
+                    onChange: _ => RefreshAttrBudget(pCopy),
+                    getValue: out _attrGet[catIdx, a]));
                 StepContent.Children.Add(row);
             }
+
+            RefreshAttrBudget(p);
         }
+    }
+
+    void RefreshAttrBudget(int p)
+    {
+        int catIdx = _attrPriority[p].SelectedIndex;
+        int budget = AttrBudgets[p];
+        int sum = SumGet(_attrGet, catIdx, 3);
+        SetBudgetLabel(_attrBudgetLabel[p], sum, budget);
     }
 
     bool CommitAttrDots()
@@ -204,36 +261,36 @@ public partial class CreationWizard : Window
         {
             int catIdx = _attrPriority[p].SelectedIndex;
             int budget = AttrBudgets[p];
-            int sum = 0;
-            for (int a = 0; a < 3; a++)
-                sum += (int)(_attrBoxes[catIdx, a].Value ?? 1);
+            int sum = SumGet(_attrGet, catIdx, 3);
             if (sum != budget)
-            {
-                ShowError($"{CatLabels[catIdx]} attributes must total {budget} (currently {sum}).");
-                return false;
-            }
+            { ShowError($"{CatLabels[catIdx]} attributes must total {budget} (currently {sum})."); return false; }
         }
 
-        // Write into character
-        _c.Strength = V(_attrBoxes[0, 0]); _c.Dexterity = V(_attrBoxes[0, 1]); _c.Stamina = V(_attrBoxes[0, 2]);
-        _c.Charisma = V(_attrBoxes[1, 0]); _c.Manipulation = V(_attrBoxes[1, 1]); _c.Composure = V(_attrBoxes[1, 2]);
-        _c.Intelligence = V(_attrBoxes[2, 0]); _c.Wits = V(_attrBoxes[2, 1]); _c.Resolve = V(_attrBoxes[2, 2]);
+        _c.Strength = G(_attrGet[0, 0]); _c.Dexterity = G(_attrGet[0, 1]); _c.Stamina = G(_attrGet[0, 2]);
+        _c.Charisma = G(_attrGet[1, 0]); _c.Manipulation = G(_attrGet[1, 1]); _c.Composure = G(_attrGet[1, 2]);
+        _c.Intelligence = G(_attrGet[2, 0]); _c.Wits = G(_attrGet[2, 1]); _c.Resolve = G(_attrGet[2, 2]);
         return true;
     }
 
     // =========================================================================
-    // Step 3 — Skill priority selection (same pattern as attr priority)
+    // Step 3 â€” Skill priority
     // =========================================================================
     void BuildSkillPrioStep()
     {
-        StepTitle.Text = "Step 4 — Skill Priority";
-        StepHint.Text = "Primary 8 dots · Secondary 6 · Tertiary 4 · Max 3 per skill";
+        StepTitle.Text = "Step 4 â€” Skill Priority";
+        StepHint.Text = "Primary 8 dots Â· Secondary 6 Â· Tertiary 4 Â· Max 3 per skill";
 
-        string[] prioLabels = { "Primary (8 dots)", "Secondary (6 dots)", "Tertiary (4 dots)" };
+        string[] labels = { "Primary (8 dots)", "Secondary (6 dots)", "Tertiary (4 dots)" };
         for (int i = 0; i < 3; i++)
         {
-            StepContent.Children.Add(Label(prioLabels[i]));
-            var box = new ComboBox { Width = 300, Background = Color("#222"), Foreground = Color("#e0e0e0") };
+            StepContent.Children.Add(MakeLabel(labels[i]));
+            var box = new ComboBox
+            {
+                Width = 300,
+                Background = Brush("#222"),
+                Foreground = Brush("#e0e0e0"),
+                BorderBrush = Brush("#444"),
+            };
             foreach (string cat in CatLabels)
                 box.Items.Add(new ComboBoxItem { Content = cat });
             box.SelectedIndex = i;
@@ -255,45 +312,59 @@ public partial class CreationWizard : Window
     }
 
     // =========================================================================
-    // Step 4 — Skill dot assignment
+    // Step 4 â€” Skill dots
     // =========================================================================
     void BuildSkillDotsStep()
     {
-        StepTitle.Text = "Step 5 — Assign Skill Dots";
-        StepHint.Text = "Skills start at 0 · Max 3 per skill at creation";
+        StepTitle.Text = "Step 5 â€” Assign Skill Dots";
+        StepHint.Text = "Click dots to set Â· Max 3 per skill at creation";
 
         for (int p = 0; p < 3; p++)
         {
             int catIdx = _skillPriority[p].SelectedIndex;
             int budget = SkillBudgets[p];
-            string cat = CatLabels[catIdx];
+            int pCopy = p;
 
-            StepContent.Children.Add(SectionLabel($"{cat}  (total = {budget})"));
+            var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
+            header.Children.Add(MakeSectionLabel(CatLabels[catIdx]));
+            var budgetLbl = new TextBlock
+            {
+                Text = $"0 / {budget}",
+                FontSize = 11,
+                Foreground = Brush("#666"),
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            _skillBudgetLabel[p] = budgetLbl;
+            header.Children.Add(budgetLbl);
+            StepContent.Children.Add(header);
 
             for (int s = 0; s < 9; s++)
             {
-                var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+                var row = MakeRow();
                 row.Children.Add(new TextBlock
                 {
                     Text = SkillNames[catIdx][s],
                     Width = 130,
                     VerticalAlignment = VerticalAlignment.Center,
-                    Foreground = Color("#aaa"),
+                    Foreground = Brush("#aaa"),
                 });
-                var spin = new NumericUpDown
-                {
-                    Minimum = 0,
-                    Maximum = 3,
-                    Value = 0,
-                    Width = 80,
-                    Background = Color("#222"),
-                    Foreground = Color("#e0e0e0"),
-                };
-                _skillBoxes[catIdx, s] = spin;
-                row.Children.Add(spin);
+                row.Children.Add(MakeDotPicker(
+                    min: 0, max: 3, initial: 0,
+                    onChange: _ => RefreshSkillBudget(pCopy),
+                    getValue: out _skillGet[catIdx, s]));
                 StepContent.Children.Add(row);
             }
+
+            RefreshSkillBudget(p);
         }
+    }
+
+    void RefreshSkillBudget(int p)
+    {
+        int catIdx = _skillPriority[p].SelectedIndex;
+        int budget = SkillBudgets[p];
+        int sum = SumGet(_skillGet, catIdx, 9);
+        SetBudgetLabel(_skillBudgetLabel[p], sum, budget);
     }
 
     bool CommitSkillDots()
@@ -302,43 +373,110 @@ public partial class CreationWizard : Window
         {
             int catIdx = _skillPriority[p].SelectedIndex;
             int budget = SkillBudgets[p];
-            int sum = 0;
-            for (int s = 0; s < 9; s++)
-                sum += (int)(_skillBoxes[catIdx, s].Value ?? 0);
+            int sum = SumGet(_skillGet, catIdx, 9);
             if (sum != budget)
-            {
-                ShowError($"{CatLabels[catIdx]} skills must total {budget} (currently {sum}).");
-                return false;
-            }
+            { ShowError($"{CatLabels[catIdx]} skills must total {budget} (currently {sum})."); return false; }
         }
 
-        _c.Athletics = V(_skillBoxes[0, 0]); _c.Brawl = V(_skillBoxes[0, 1]); _c.Craft = V(_skillBoxes[0, 2]);
-        _c.Drive = V(_skillBoxes[0, 3]); _c.Firearms = V(_skillBoxes[0, 4]); _c.Larceny = V(_skillBoxes[0, 5]);
-        _c.Melee = V(_skillBoxes[0, 6]); _c.Stealth = V(_skillBoxes[0, 7]); _c.Survival = V(_skillBoxes[0, 8]);
+        _c.Athletics = G(_skillGet[0, 0]); _c.Brawl = G(_skillGet[0, 1]); _c.Craft = G(_skillGet[0, 2]);
+        _c.Drive = G(_skillGet[0, 3]); _c.Firearms = G(_skillGet[0, 4]); _c.Larceny = G(_skillGet[0, 5]);
+        _c.Melee = G(_skillGet[0, 6]); _c.Stealth = G(_skillGet[0, 7]); _c.Survival = G(_skillGet[0, 8]);
 
-        _c.AnimalKen = V(_skillBoxes[1, 0]); _c.Etiquette = V(_skillBoxes[1, 1]); _c.Insight = V(_skillBoxes[1, 2]);
-        _c.Intimidation = V(_skillBoxes[1, 3]); _c.Leadership = V(_skillBoxes[1, 4]); _c.Performance = V(_skillBoxes[1, 5]);
-        _c.Persuasion = V(_skillBoxes[1, 6]); _c.Streetwise = V(_skillBoxes[1, 7]); _c.Subterfuge = V(_skillBoxes[1, 8]);
+        _c.AnimalKen = G(_skillGet[1, 0]); _c.Etiquette = G(_skillGet[1, 1]); _c.Insight = G(_skillGet[1, 2]);
+        _c.Intimidation = G(_skillGet[1, 3]); _c.Leadership = G(_skillGet[1, 4]); _c.Performance = G(_skillGet[1, 5]);
+        _c.Persuasion = G(_skillGet[1, 6]); _c.Streetwise = G(_skillGet[1, 7]); _c.Subterfuge = G(_skillGet[1, 8]);
 
-        _c.Academics = V(_skillBoxes[2, 0]); _c.Awareness = V(_skillBoxes[2, 1]); _c.Finance = V(_skillBoxes[2, 2]);
-        _c.Investigation = V(_skillBoxes[2, 3]); _c.Medicine = V(_skillBoxes[2, 4]); _c.Occult = V(_skillBoxes[2, 5]);
-        _c.Politics = V(_skillBoxes[2, 6]); _c.Science = V(_skillBoxes[2, 7]); _c.Technology = V(_skillBoxes[2, 8]);
+        _c.Academics = G(_skillGet[2, 0]); _c.Awareness = G(_skillGet[2, 1]); _c.Finance = G(_skillGet[2, 2]);
+        _c.Investigation = G(_skillGet[2, 3]); _c.Medicine = G(_skillGet[2, 4]); _c.Occult = G(_skillGet[2, 5]);
+        _c.Politics = G(_skillGet[2, 6]); _c.Science = G(_skillGet[2, 7]); _c.Technology = G(_skillGet[2, 8]);
         return true;
     }
 
     // =========================================================================
-    // Step 5 — Review summary
+    // Step 5 â€” Disciplines
+    // =========================================================================
+    void BuildDisciplineStep()
+    {
+        StepTitle.Text = "Step 6 â€” Disciplines";
+        StepHint.Text = "Distribute 3 dots across your clan's disciplines (V5 p.152).";
+
+        var inClan = ClanDisciplines.For(_c.Clan);
+
+        var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
+        header.Children.Add(MakeSectionLabel("IN-CLAN DISCIPLINES"));
+        _discBudgetLabel = new TextBlock
+        {
+            Text = "0 / 3",
+            FontSize = 11,
+            Foreground = Brush("#666"),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        header.Children.Add(_discBudgetLabel);
+        StepContent.Children.Add(header);
+
+        for (int i = 0; i < 3; i++)
+        {
+            var row = MakeRow();
+            row.Children.Add(new TextBlock
+            {
+                Text = ClanDisciplines.DisplayName(inClan[i]),
+                Width = 160,
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = Brush("#aaa"),
+            });
+            row.Children.Add(MakeDotPicker(
+                min: 0, max: 5, initial: 1,
+                onChange: _ => RefreshDiscBudget(),
+                getValue: out _discGet[i]));
+            StepContent.Children.Add(row);
+        }
+
+        RefreshDiscBudget();
+    }
+
+    void RefreshDiscBudget()
+    {
+        int sum = 0;
+        for (int i = 0; i < 3; i++) sum += _discGet[i]?.Invoke() ?? 0;
+        SetBudgetLabel(_discBudgetLabel, sum, 3);
+    }
+
+    bool CommitDisciplines()
+    {
+        int sum = 0;
+        for (int i = 0; i < 3; i++) sum += _discGet[i]?.Invoke() ?? 0;
+        if (sum != 3)
+        { ShowError($"Disciplines must total 3 dots (currently {sum})."); return false; }
+
+        var inClan = ClanDisciplines.For(_c.Clan);
+        PendingDisciplines.Clear();
+        for (int i = 0; i < 3; i++)
+        {
+            byte rating = (byte)(_discGet[i]?.Invoke() ?? 0);
+            if (rating == 0) continue;
+            PendingDisciplines.Add(new Discipline
+            {
+                CharacterId = 0,
+                Name = inClan[i],
+                Rating = rating,
+            });
+        }
+        return true;
+    }
+
+    // =========================================================================
+    // Step 6 â€” Review
     // =========================================================================
     void BuildReviewStep()
     {
-        StepTitle.Text = "Step 6 — Review";
+        StepTitle.Text = "Step 7 â€” Review";
         StepHint.Text = "Confirm to create the character.";
 
-        void Row(string label, string value)
+        void Row(string lbl, string val)
         {
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-            row.Children.Add(new TextBlock { Text = label, Width = 130, Foreground = Color("#aaa"), FontSize = 12 });
-            row.Children.Add(new TextBlock { Text = value, Foreground = Color("#e0e0e0"), FontSize = 12 });
+            row.Children.Add(new TextBlock { Text = lbl, Width = 160, Foreground = Brush("#aaa"), FontSize = 12 });
+            row.Children.Add(new TextBlock { Text = val, Foreground = Brush("#e0e0e0"), FontSize = 12 });
             StepContent.Children.Add(row);
         }
 
@@ -348,12 +486,20 @@ public partial class CreationWizard : Window
         Row("Blood Potency", $"{_c.BloodPotency}");
         Row("Humanity", $"{_c.Humanity}");
         Row("Hunger", $"{_c.Hunger}");
-        StepContent.Children.Add(new Avalonia.Controls.Separator { Height = 1, Background = Color("#333"), Margin = new Avalonia.Thickness(0, 8) });
+        Divider();
         Row("STR / DEX / STA", $"{_c.Strength} / {_c.Dexterity} / {_c.Stamina}");
         Row("CHA / MAN / COM", $"{_c.Charisma} / {_c.Manipulation} / {_c.Composure}");
         Row("INT / WIT / RES", $"{_c.Intelligence} / {_c.Wits} / {_c.Resolve}");
         Row("Health (max)", $"{_c.HealthMax}");
         Row("Willpower (max)", $"{_c.WillpowerMax}");
+
+        if (PendingDisciplines.Count > 0)
+        {
+            Divider();
+            foreach (var d in PendingDisciplines)
+                Row(ClanDisciplines.DisplayName(d.Name),
+                    new string('â—', d.Rating) + new string('â—‹', 5 - d.Rating));
+        }
     }
 
     // =========================================================================
@@ -368,51 +514,118 @@ public partial class CreationWizard : Window
             2 => CommitAttrDots(),
             3 => CommitSkillPriority(),
             4 => CommitSkillDots(),
-            5 => Finish(),
+            5 => CommitDisciplines(),
+            6 => Finish(),
             _ => true
         };
-        if (ok && _step < 5) ShowStep(_step + 1);
+        if (ok && _step < 6) ShowStep(_step + 1);
     }
 
-    void OnBack(object? sender, RoutedEventArgs e)
-    {
-        if (_step > 0) ShowStep(_step - 1);
-    }
-
+    void OnBack(object? sender, RoutedEventArgs e) { if (_step > 0) ShowStep(_step - 1); }
     void OnCancel(object? sender, RoutedEventArgs e) => Close();
+    bool Finish() { Result = _c; Close(); return true; }
 
-    bool Finish()
+    // =========================================================================
+    // Dot picker
+    //
+    // Returns a StackPanel of `max` clickable dot buttons.
+    // Clicking dot i+1 sets value to i+1.
+    // Clicking the active dot decrements by 1 (clamped to min).
+    // onChange fires after every change â€” used to update budget labels.
+    // getValue is a delegate the caller stores to read the live value.
+    // =========================================================================
+    static StackPanel MakeDotPicker(int min, int max, int initial,
+                                     Action<int> onChange, out Func<int> getValue)
     {
-        Result = _c;
-        Close();
-        return true;
+        int current = Math.Clamp(initial, min, max);
+        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3 };
+        var buttons = new Button[max];
+
+        void Redraw()
+        {
+            for (int i = 0; i < max; i++)
+            {
+                buttons[i].Content = i < current ? "â—" : "â—‹";
+                buttons[i].Foreground = new SolidColorBrush(
+                    i < current
+                        ? global::Avalonia.Media.Color.Parse("#cc2200")
+                        : global::Avalonia.Media.Color.Parse("#444"));
+            }
+        }
+
+        for (int i = 0; i < max; i++)
+        {
+            int dotRating = i + 1;
+            var btn = new Button
+            {
+                Width = 22,
+                Height = 22,
+                Padding = new Thickness(0),
+                Background = Avalonia.Media.Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                FontSize = 14,
+                Cursor = new Cursor(StandardCursorType.Hand),
+            };
+            btn.Click += (_, _) =>
+            {
+                current = (current == dotRating && dotRating > min) ? dotRating - 1 : dotRating;
+                current = Math.Clamp(current, min, max);
+                Redraw();
+                onChange(current);
+            };
+            buttons[i] = btn;
+            panel.Children.Add(btn);
+        }
+
+        Redraw();
+        getValue = () => current;
+        return panel;
     }
 
     // =========================================================================
-    // UI helpers
+    // Small helpers
     // =========================================================================
-
-    static TextBlock Label(string text) => new TextBlock
+    static StackPanel MakeRow() => new StackPanel
     {
-        Text = text,
-        Foreground = new SolidColorBrush(global::Avalonia.Media.Color.Parse("#aaa")),
-        FontSize = 12,
-        Margin = new Avalonia.Thickness(0, 8, 0, 2),
+        Orientation = Orientation.Horizontal,
+        Spacing = 12,
+        Margin = new Thickness(0, 2, 0, 2),
     };
 
-    static TextBlock SectionLabel(string text) => new TextBlock
+    static TextBlock MakeLabel(string text) => new TextBlock
     {
         Text = text,
-        Foreground = new SolidColorBrush(global::Avalonia.Media.Color.Parse("#b00000")),
+        Foreground = Brush("#aaa"),
+        FontSize = 12,
+        Margin = new Thickness(0, 8, 0, 2),
+    };
+
+    static TextBlock MakeSectionLabel(string text) => new TextBlock
+    {
+        Text = text,
+        Foreground = Brush("#b00000"),
         FontSize = 11,
         FontWeight = FontWeight.Bold,
-        Margin = new Avalonia.Thickness(0, 12, 0, 4),
+        Margin = new Thickness(0, 12, 0, 4),
         LetterSpacing = 1,
     };
 
+    static void SetBudgetLabel(TextBlock? lbl, int sum, int budget)
+    {
+        if (lbl == null) return;
+        lbl.Text = $"{sum} / {budget}";
+        lbl.Foreground = sum == budget ? Brush("#00cc66") : Brush("#666");
+    }
+
+    void Divider() => StepContent.Children.Add(new Separator
+    {
+        Height = 1,
+        Background = Brush("#333"),
+        Margin = new Thickness(0, 8),
+    });
+
     void ShowError(string msg)
     {
-        // Remove previous error if any
         if (StepContent.Children.Count > 0 &&
             StepContent.Children[^1] is TextBlock { Tag: "error" } prev)
             StepContent.Children.Remove(prev);
@@ -420,17 +633,27 @@ public partial class CreationWizard : Window
         StepContent.Children.Add(new TextBlock
         {
             Text = msg,
-            Foreground = new SolidColorBrush(global::Avalonia.Media.Color.Parse("#cc0000")),
+            Foreground = Brush("#cc0000"),
             FontSize = 12,
-            Margin = new Avalonia.Thickness(0, 8, 0, 0),
+            Margin = new Thickness(0, 8, 0, 0),
             Tag = "error",
         });
     }
 
-    static ISolidColorBrush Color(string hex) =>
+    // Returns a SolidColorBrush from a hex string
+    static ISolidColorBrush Brush(string hex) =>
         new SolidColorBrush(global::Avalonia.Media.Color.Parse(hex));
 
-    static byte V(NumericUpDown? box) => (byte)(box?.Value ?? 0);
+    // Invoke a Func<int> delegate and cast to byte
+    static byte G(Func<int>? f) => (byte)(f?.Invoke() ?? 0);
+
+    // Sum a row of Func<int> delegates from a 2D array
+    static int SumGet(Func<int>[,] arr, int row, int count)
+    {
+        int sum = 0;
+        for (int i = 0; i < count; i++) sum += arr[row, i]?.Invoke() ?? 0;
+        return sum;
+    }
 
     static string ClanDisplayName(Clan c) => c switch
     {
