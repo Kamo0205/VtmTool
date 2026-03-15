@@ -453,12 +453,12 @@ public class Program
                 Console.WriteLine($"{c.Name,-20} {c.Clan,-14} {c.Generation,4} {c.BloodPotency,4} {c.Hunger,6}");
         }
 
-        public static void LoadCharacter(List<Character> characters, string name)
+        public static Character? LoadCharacter(List<Character> characters, string name)
         {
             var c = characters.Find(x =>
                 string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
 
-            if (c.Id == 0) { Console.WriteLine($"No character named '{name}'."); return; }
+            if (c.Id == 0) { Console.WriteLine($"No character named '{name}'."); return null; }
 
             Console.WriteLine();
             Console.WriteLine($"  Name       : {c.Name}");
@@ -473,6 +473,8 @@ public class Program
             Console.WriteLine($"  STR {c.Strength}  DEX {c.Dexterity}  STA {c.Stamina}");
             Console.WriteLine($"  CHA {c.Charisma}  MAN {c.Manipulation}  COM {c.Composure}");
             Console.WriteLine($"  INT {c.Intelligence}  WIT {c.Wits}  RES {c.Resolve}");
+
+            return c;
         }
 
         public static void AssignAttributes(ref Character c)
@@ -502,6 +504,33 @@ public class Program
 
     static List<Character> _characters = new();
 
+    public static void LoadLoop(in Character c)
+    {
+        while (true)
+        {
+            Console.Write("\x1b[0;33m>\x1b[0m ");
+            var input = Console.ReadLine()?.Trim().ToLower();
+            switch (input)
+            {
+                case "sheet":
+                    break;
+                case "edit attr":
+                    break;
+                case "edit skills":
+                    break;
+                case "rouse":
+                    Rules.RouseCheck(c, new Random());
+                    break;
+                case "damage":
+                    break;
+                case "heal":
+                    break;
+                case "quit":
+                    return;
+            }
+        }
+    }
+
     public static void Main(string[] args)
     {
         Db.Init();
@@ -523,7 +552,10 @@ public class Program
                     Console.Write("Character name: ");
                     var name = Console.ReadLine()?.Trim();
                     if (!string.IsNullOrWhiteSpace(name))
-                        Commands.LoadCharacter(_characters, name);
+                    {
+                        var c = Commands.LoadCharacter(_characters, name);
+                        if (c != null) LoadLoop((Character)c);
+                    }
                     else
                         Console.WriteLine("No name entered.");
                     break;
