@@ -427,7 +427,7 @@ public class Program
     {
         public static void NewCharacter(List<Character> characters)
         {
-            var c = new Character { Generation = 13, Hunger = 1 };
+            var c = new Character { Generation = 13, BloodPotency = 1, Hunger = 1, Humanity = 7 };
 
             Console.Write("Name: ");
             c.Name = Console.ReadLine()?.Trim() ?? "Unknown";
