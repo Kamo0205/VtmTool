@@ -4,8 +4,6 @@ using static VtmTool.App.Program;
 
 namespace VtmTool.App;
 
-public class Program
-{
     /// <summary>
     /// Specifies the available vampire clans.
     /// </summary>
@@ -359,16 +357,6 @@ public class Program
             return c;
         }
 
-        public static Character? LoadCharacter(int id)
-        {
-            return null;
-        }
-
-        public static List<(int id, string name, string clan, int generation)> ListCharacters()
-        {
-            return new List<(int id, string name, string clan, int generation)>(0);
-        }
-        
         public static void DeleteCharacter(int id)
         {
             using var conn = new SqliteConnection(ConnectionString);
@@ -683,6 +671,19 @@ public class Program
         }
     }
 
+// =========================================================================
+// Creation
+//
+// Guided V5 character creation steps. Each method takes ref Character and
+// writes the chosen values directly in. Called in sequence from NewCharacter.
+// =========================================================================
+public static class Creation
+{
+
+}
+
+public class Program
+{
     static List<Character> _characters = new();
 
     public static void LoadLoop(in Character c)
