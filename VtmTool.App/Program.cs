@@ -85,7 +85,9 @@ public static class Rules
         if (total >= max) return -3;
         if (total >= max - 1) return -2;
         if (total >= max - 2) return -1;
-        return 0;
+        // V5 p.127: penalty when last 1, 2, or 3 boxes are filled
+        int empty = max - total;
+        return empty switch { 0 => -3, 1 => -2, 2 => -1, _ => 0 };
     }
 
     // V5 p.212 — Rouse check: roll 1d10, fail on 1–5.
@@ -145,7 +147,10 @@ public static class Rules
 
     public static Character ApplyAggravatedWillpower(Character c, int amount)
     {
-        // TODO: implement feature
+        c.AggravatedWillpower = (byte)Math.Min(c.AggravatedWillpower + amount, c.WillpowerMax);
+        int total = c.AggravatedWillpower + c.SuperficialWillpower;
+        if (total > c.WillpowerMax)
+            c.SuperficialWillpower = (byte)(c.WillpowerMax - c.AggravatedWillpower);
         return c;
     }
 
@@ -243,7 +248,6 @@ public static class Db
     // Called once at startup. Creates the DB file and table if absent.
     public static void Init()
     {
-        //if (!File.Exists("vtm.db"))
         using var conn = new SqliteConnection(ConnectionString);
         conn.Open();
         using var cmd = conn.CreateCommand();
@@ -501,7 +505,6 @@ public static class Commands
         Console.WriteLine("  Clans: Banu_Haqim, Brujah, Gangrel, Hecata, Lasombra,");
         Console.WriteLine("         Malkavian, Ministry, Nosferatu, Ravnos, Salubri,");
         Console.WriteLine("         ThinBlood, Toreador, Tremere, Tzimisce, Ventrue");
-        Console.Write("  Clan: ");
         Clan clan;
         while (true)
         {
@@ -617,6 +620,11 @@ public static class Commands
                         if (!int.TryParse(Console.ReadLine()?.Trim(), out int amt) || amt <= 0)
                         { Console.WriteLine("  Invalid amount."); break; }
 
+                        bool validTrack = track is "health" or "willpower";
+                        bool validType = type is "superficial" or "aggravated";
+                        if (!validTrack || !validType)
+                        { Console.WriteLine("  Invalid track or type."); break; }
+
                         c = (track, type) switch
                         {
                             ("health", "superficial") => Rules.ApplySuperficialHealth(c, amt),
@@ -637,14 +645,18 @@ public static class Commands
                     {
                         Console.Write("  Track (health / willpower): ");
                         string? track = Console.ReadLine()?.Trim().ToLower();
+                        Console.Write("  Type  (superficial / aggravated): ");
+                        string? type = Console.ReadLine()?.Trim().ToLower();
                         Console.Write("  Amount: ");
                         if (!int.TryParse(Console.ReadLine()?.Trim(), out int amt) || amt <= 0)
                         { Console.WriteLine("  Invalid amount."); break; }
 
-                        c = track switch
+                        c = (track, type) switch
                         {
-                            "health" => Rules.HealSuperficialHealth(c, amt),
-                            "willpower" => Rules.HealSuperficialWillpower(c, amt),
+                            ("health", "superficial") => Rules.HealSuperficialHealth(c, amt),
+                            ("health", "aggravated") => Rules.HealAggravatedHealth(c, amt),
+                            ("willpower", "superficial") => Rules.HealSuperficialWillpower(c, amt),
+                            ("willpower", "aggravated") => Rules.HealAggravatedWillpower(c, amt),
                             _ => c
                         };
                         Commit(c);
