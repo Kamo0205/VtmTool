@@ -686,29 +686,68 @@ public class Program
 {
     static List<Character> _characters = new();
 
-    public static void LoadLoop(in Character c)
+    // =========================================================================
+    // LoadLoop — inner command loop for an active character
+    //
+    // Takes the list + index so mutations can be written back in place and
+    // persisted immediately. Pattern: copy out → mutate → write back → save.
+    // =========================================================================
+    static void LoadLoop(List<Character> characters, int idx)
     {
+        Character c = characters[idx];
+        Console.WriteLine($"\n  Loaded '{c.Name}'. Type 'help' for commands.");
+
+        // Write the mutated character back to the list and the DB.
+        void Commit(Character updated)
+        {
+            c = updated;
+            characters[idx] = c;
+            Db.SaveCharacter(c);
+        }
+
+        var rng = new Random();
+
         while (true)
         {
-            Console.Write("\x1b[0;33m>\x1b[0m ");
-            var input = Console.ReadLine()?.Trim().ToLower();
+            Console.Write($"\x1b[0;33m{c.Name}>\x1b[0m ");
+            string? input = Console.ReadLine()?.Trim().ToLower();
+
             switch (input)
             {
                 case "sheet":
+                    Print.Sheet(c);
                     break;
                 case "edit attr":
                     break;
                 case "edit skills":
                     break;
                 case "rouse":
-                    Rules.RouseCheck(c, new Random());
+                    {
+                        // V5 p.212 — 1d10, success on 6+.
+                        int roll = rng.Next(1, 11);
+                        bool success = roll >= 6;
+                        Console.WriteLine($"  Rouse check — rolled {roll}: {(success ? "Success" : "Failure")}");
+                        byte prev = c.Hunger;
+                        c.Hunger = Rules.RouseCheck(c, rng);
+                        if (c.Hunger != prev)
+                            Console.WriteLine($"  Hunger {prev} → {c.Hunger}  {Print.HungerTrack(c.Hunger)}");
+                        else
+                            Console.WriteLine($"  Hunger unchanged ({c.Hunger})  {Print.HungerTrack(c.Hunger)}");
+                        if (c.Hunger == 5)
+                            Console.WriteLine("  \x1b[0;31mHunger 5 — Frenzy check required!\x1b[0m");
+                        Commit(c);
                     break;
+                    }
+
                 case "damage":
                     break;
                 case "heal":
                     break;
-                case "quit":
+                case "back":
                     return;
+                default:
+                    Console.WriteLine("  Unknown command. Type 'help'.");
+                    break;
             }
         }
     }
@@ -717,10 +756,16 @@ public class Program
     {
         Db.Init();
         _characters = Db.LoadAll();
+
+        Console.WriteLine("Vampire: The Masquerade V5 — Character Tool");
+        Console.WriteLine($"  {_characters.Count} character(s) loaded.");
+        Console.WriteLine("  Type 'help' for commands.");
+
         while (true)
         {
             Console.Write("\x1b[0;33m>\x1b[0m ");
             var input = Console.ReadLine()?.Trim().ToLower();
+            string? name = string.Empty;
 
             switch (input)
             {
@@ -732,20 +777,26 @@ public class Program
                     break;
                 case "load":
                     Console.Write("Character name: ");
-                    var name = Console.ReadLine()?.Trim();
+                    name = Console.ReadLine()?.Trim();
+                    if (string.IsNullOrWhiteSpace(name)) { Console.WriteLine("  No name entered."); break; }
+                    int idx = Commands.FindByName(_characters, name);
+                    if (idx < 0) { Console.WriteLine($"  No character named '{name}'."); break; }
+                    LoadLoop(_characters, idx);
+                    break;
+                case "delete":
+                    Console.Write("  Character name: ");
+                    name = Console.ReadLine()?.Trim();
                     if (!string.IsNullOrWhiteSpace(name))
-                    {
-                        var c = Commands.LoadCharacter(_characters, name);
-                        if (c != null) LoadLoop((Character)c);
-                    }
-                    else
-                        Console.WriteLine("No name entered.");
+                        Commands.DeleteCharacter(_characters, name);
+                    break;
+                case "help":
+                    Print.Help(inCharacter: false);
                     break;
                 case "quit":
-                    Console.WriteLine("Exiting...");
+                    Console.WriteLine("  Exiting.");
                     return;
                 default:
-                    Console.WriteLine("Commands: new | list | load | quit");
+                    Console.WriteLine("  Unknown command. Type 'help'.");
                     break;
             }
         }
