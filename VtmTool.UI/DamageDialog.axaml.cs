@@ -16,6 +16,11 @@ public partial class DamageDialog : Window
 
     readonly DamageDialogMode _mode;
 
+    public DamageDialog() : this(DamageDialogMode.Apply)
+    {
+        InitializeComponent();
+    }
+
     public DamageDialog(DamageDialogMode mode)
     {
         _mode = mode;

@@ -60,10 +60,10 @@ public partial class CreationWizard : Window
     static readonly int[] AttrBudgets = { 5, 4, 3 };
     static readonly int[] SkillBudgets = { 8, 6, 4 };
 
-    public CreationWizard()
+    public CreationWizard(int startStep = 0)
     {
         InitializeComponent();
-        ShowStep(0);
+        ShowStep(startStep);
     }
 
     // Step routing

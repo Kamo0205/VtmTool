@@ -9,6 +9,11 @@ public partial class ConfirmDialog : Window
 {
     public bool Confirmed { get; private set; }
 
+    public ConfirmDialog()
+    {
+        InitializeComponent();
+    }
+
     public ConfirmDialog(string message)
     {
         InitializeComponent();

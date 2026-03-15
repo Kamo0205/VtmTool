@@ -152,8 +152,8 @@
 					<Button Classes="action" Click="OnRouse">Rouse Check</Button>
 					<Button Classes="action" Click="OnDamage">Apply Damage</Button>
 					<Button Classes="action" Click="OnHeal">Heal</Button>
-					<Button Classes="action" Click="OnEditCharacter">Edit Attributes</Button>
-					<Button Classes="action" Click="OnEditCharacter">Edit Skills</Button>
+					<Button Classes="action" Click="OnEditAttr">Edit Attributes</Button>
+					<Button Classes="action" Click="OnEditSkills">Edit Skills</Button>
 					<Button Classes="action" Click="OnDelete">Delete</Button>
 				</StackPanel>
 

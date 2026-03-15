@@ -172,21 +172,21 @@ public partial class MainWindow : Window
 
     // Button handlers
 
-    async Task OnNewCharacter(object? sender, RoutedEventArgs e)
+    async void OnNewCharacter(object? sender, RoutedEventArgs e)
     {
         // Creation wizard is a separate dialog — opens synchronously for now
         // and returns the created character.
         
-        var wizard = new CreationWizard();
+        var wizard = new CreationWizard(0);
         await wizard.ShowDialog(this);
-                if (wizard.Result is Character created)
-                {
-                    var saved = Db.SaveCharacter(created);
-                    _characters.Add(saved);
-                    RebuildList();
-                    SelectCharacter(_characters.Count - 1);
-                    SetStatus($"'{saved.Name}' created.");
-                }
+        if (wizard.Result is Character created)
+        {
+            var saved = Db.SaveCharacter(created);
+            _characters.Add(saved);
+            RebuildList();
+            SelectCharacter(_characters.Count - 1);
+            SetStatus($"'{saved.Name}' created.");
+        }
     }
 
     void OnRouse(object? sender, RoutedEventArgs e)
@@ -247,16 +247,20 @@ public partial class MainWindow : Window
         SetStatus($"Damage updated.");
     }
 
-    async void OnEditCharacter(object? sender, RoutedEventArgs e)
+    async void OnEditAttr(object? sender, RoutedEventArgs e)
     {
         if (_selectedIdx < 0) return;
-        var wizard = new CreationWizard();
+        var wizard = new CreationWizard(startStep: 1);
         await wizard.ShowDialog(this);
-        if (wizard.Result is Character updated)
-        {
-            Commit(updated);
-            SetStatus("Character updated.");
-        }
+        if (wizard.Result is Character updated) { Commit(updated); SetStatus("Attributes updated."); }
+    }
+
+    async void OnEditSkills(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedIdx < 0) return;
+        var wizard = new CreationWizard(startStep: 3);
+        await wizard.ShowDialog(this);
+        if (wizard.Result is Character updated) { Commit(updated); SetStatus("Skills updated."); }
     }
 
     async void OnDelete(object? sender, RoutedEventArgs e)
