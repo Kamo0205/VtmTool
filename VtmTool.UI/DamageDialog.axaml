@@ -1,0 +1,71 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="220"
+        x:Class="VtmTool.UI.DamageDialog"
+        Title="Damage"
+		CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#1a1a1a"
+        Foreground="#e0e0e0"
+        FontFamily="Consolas,Courier New,monospace">
+	<StackPanel Margin="24" Spacing="14">
+
+		<TextBlock x:Name="DialogTitle"
+                   FontSize="14"
+                   FontWeight="Bold"
+                   Foreground="#cc2200"/>
+
+		<!-- Track -->
+		<StackPanel Spacing="6">
+			<TextBlock Text="Track" FontSize="12" Foreground="#aaa"/>
+			<ComboBox x:Name="TrackBox"
+                      Width="260"
+                      Background="#222"
+                      Foreground="#e0e0e0"
+                      BorderBrush="#444">
+				<ComboBoxItem Content="Health"    Tag="health"/>
+				<ComboBoxItem Content="Willpower" Tag="willpower"/>
+			</ComboBox>
+		</StackPanel>
+
+		<!-- Type -->
+		<StackPanel Spacing="6">
+			<TextBlock x:Name="TypeLabel" Text="Type" FontSize="12" Foreground="#aaa"/>
+			<ComboBox x:Name="TypeBox"
+                      Width="260"
+                      Background="#222"
+                      Foreground="#e0e0e0"
+                      BorderBrush="#444"/>
+		</StackPanel>
+
+		<!-- Amount -->
+		<StackPanel Spacing="6">
+			<TextBlock Text="Amount" FontSize="12" Foreground="#aaa"/>
+			<NumericUpDown x:Name="AmountBox"
+                           Minimum="1" Maximum="10" Value="1"
+                           Width="260"
+                           Background="#222"
+                           Foreground="#e0e0e0"
+                           BorderBrush="#444"/>
+		</StackPanel>
+
+		<!-- Buttons -->
+		<StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+			<Button Content="Cancel"
+                    Background="#2a2a2a"
+                    Foreground="#e0e0e0"
+                    BorderBrush="#444"
+                    Padding="14,7"
+                    Click="OnCancel"/>
+			<Button Content="Confirm"
+                    Background="#5a0000"
+                    Foreground="#fff"
+                    BorderBrush="#900000"
+                    Padding="14,7"
+                    Click="OnConfirm"/>
+		</StackPanel>
+
+	</StackPanel>
+</Window>
