@@ -436,6 +436,9 @@ public class Program
             if (Enum.TryParse<Clan>(Console.ReadLine()?.Trim(), ignoreCase: true, out var clan))
                 c.Clan = clan;
 
+            AssignAttributes(ref c);
+            AssignSkills(ref c);
+
             c = Db.SaveCharacter(c);      // Id is filled in here after INSERT
             characters.Add(c);
             Console.WriteLine($"Created '{c.Name}' (id {c.Id}).");
@@ -471,7 +474,19 @@ public class Program
             Console.WriteLine($"  CHA {c.Charisma}  MAN {c.Manipulation}  COM {c.Composure}");
             Console.WriteLine($"  INT {c.Intelligence}  WIT {c.Wits}  RES {c.Resolve}");
         }
+
+        public static void AssignAttributes(ref Character c)
+        {
+            
+        }
+
+        public static void AssignSkills(ref Character c)
+        {
+
+        }
     }
+
+
 
     static List<Character> _characters = new();
 
