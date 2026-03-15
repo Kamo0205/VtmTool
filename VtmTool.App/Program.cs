@@ -486,7 +486,19 @@ public class Program
         }
     }
 
+    public readonly struct Print
+    {
+        public static string Dots(byte value, byte max = 5)
+        {
+            // ● = \u25CF  ○ = \u25CB
+            return new string('\u25CF', value) + new string('\u25CB', max - value);
+    }
 
+        public static void PrintSheet(in Character c)
+        {
+
+        }
+    }
 
     static List<Character> _characters = new();
 
