@@ -987,6 +987,8 @@ public class Program
         }
 
         var rng = new Random();
+        string? track = string.Empty;
+        int amt = default;
 
         while (true)
         {
@@ -1023,11 +1025,11 @@ public class Program
                     break;
                 case "damage":
                     Console.Write("  Track (health / willpower): ");
-                    string? track = Console.ReadLine()?.Trim().ToLower();
+                    track = Console.ReadLine()?.Trim().ToLower();
                     Console.Write("  Type  (superficial / aggravated): ");
                     string? type = Console.ReadLine()?.Trim().ToLower();
                     Console.Write("  Amount: ");
-                    if (!int.TryParse(Console.ReadLine()?.Trim(), out int amt) || amt <= 0)
+                    if (!int.TryParse(Console.ReadLine()?.Trim(), out amt) || amt <= 0)
                     { Console.WriteLine("  Invalid amount."); break; }
 
                     c = (track, type) switch
@@ -1045,6 +1047,24 @@ public class Program
                     if (wp < 0) Console.WriteLine($"  \x1b[0;31mWound penalty {wp} to all dice pools\x1b[0m");
                     break;
                 case "heal":
+                    Console.Write("  Track (health / willpower): ");
+                    track = Console.ReadLine()?.Trim().ToLower();
+                    Console.Write("  Amount: ");
+                    if (!int.TryParse(Console.ReadLine()?.Trim(), out amt) || amt <= 0)
+                    { Console.WriteLine("  Invalid amount."); break; }
+
+                    c = track switch
+                    {
+                        "health" => Rules.HealSuperficialHealth(c, amt),
+                        "willpower" => Rules.HealSuperficialWillpower(c, amt),
+                        _ => c
+                    };
+                    Commit(c);
+                    Console.WriteLine($"  Health:    {Print.DamageTrack(c.AggravatedHealth, c.SuperficialHealth, c.HealthMax)}");
+                    Console.WriteLine($"  Willpower: {Print.DamageTrack(c.AggravatedWillpower, c.SuperficialWillpower, c.WillpowerMax)}");
+                    break;
+                case "help":
+                    Print.Help(inCharacter: true);
                     break;
                 case "back":
                     return;
