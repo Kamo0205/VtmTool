@@ -5,5 +5,369 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="VtmTool.UI.MainWindow"
         Title="VtmTool.UI">
-    Welcome to Avalonia!
+	<Window.Styles>
+		<!-- Base text -->
+		<Style Selector="TextBlock">
+			<Setter Property="Foreground" Value="#e0e0e0"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="13"/>
+		</Style>
+
+		<!-- Section headers -->
+		<Style Selector="TextBlock.section">
+			<Setter Property="Foreground" Value="#b00000"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="LetterSpacing" Value="2"/>
+			<Setter Property="Margin" Value="0,12,0,4"/>
+		</Style>
+
+		<!-- Character name heading -->
+		<Style Selector="TextBlock.charName">
+			<Setter Property="Foreground" Value="#ffffff"/>
+			<Setter Property="FontSize" Value="20"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+		</Style>
+
+		<!-- Subtitle line (clan · gen · humanity) -->
+		<Style Selector="TextBlock.subtitle">
+			<Setter Property="Foreground" Value="#999"/>
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="Margin" Value="0,2,0,0"/>
+		</Style>
+
+		<!-- Sidebar character list item -->
+		<Style Selector="Button.charItem">
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+			<Setter Property="HorizontalContentAlignment" Value="Left"/>
+			<Setter Property="Padding" Value="12,8"/>
+			<Setter Property="Cursor" Value="Hand"/>
+		</Style>
+		<Style Selector="Button.charItem:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#2a2a2a"/>
+		</Style>
+		<Style Selector="Button.charItem.selected /template/ ContentPresenter">
+			<Setter Property="Background" Value="#2e0000"/>
+		</Style>
+
+		<!-- Action buttons -->
+		<Style Selector="Button.action">
+			<Setter Property="Background" Value="#2a0000"/>
+			<Setter Property="Foreground" Value="#e0e0e0"/>
+			<Setter Property="BorderBrush" Value="#5a0000"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Padding" Value="14,7"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="Cursor" Value="Hand"/>
+		</Style>
+		<Style Selector="Button.action:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#3d0000"/>
+		</Style>
+		<Style Selector="Button.action:disabled /template/ ContentPresenter">
+			<Setter Property="Background" Value="#1a1a1a"/>
+			<Setter Property="Opacity" Value="0.4"/>
+		</Style>
+
+		<!-- New character button — slightly brighter -->
+		<Style Selector="Button.primary">
+			<Setter Property="Background" Value="#5a0000"/>
+			<Setter Property="Foreground" Value="#ffffff"/>
+			<Setter Property="BorderBrush" Value="#900000"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Padding" Value="14,8"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		</Style>
+		<Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#750000"/>
+		</Style>
+
+		<!-- Stat label (left-aligned, fixed width) -->
+		<Style Selector="TextBlock.statLabel">
+			<Setter Property="Foreground" Value="#aaa"/>
+			<Setter Property="Width" Value="110"/>
+			<Setter Property="FontSize" Value="12"/>
+		</Style>
+
+		<!-- Dot display -->
+		<Style Selector="TextBlock.dots">
+			<Setter Property="Foreground" Value="#cc2200"/>
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+
+		<!-- Damage track -->
+		<Style Selector="TextBlock.track">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+		</Style>
+
+		<!-- Hunger track red -->
+		<Style Selector="TextBlock.hunger">
+			<Setter Property="Foreground" Value="#cc0000"/>
+			<Setter Property="FontSize" Value="13"/>
+		</Style>
+
+		<!-- Empty placeholder text -->
+		<Style Selector="TextBlock.placeholder">
+			<Setter Property="Foreground" Value="#444"/>
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+	</Window.Styles>
+	
+	<Grid ColumnDefinitions="220,1,*">
+		<!-- Left Sidebar - Character list -->
+		<DockPanel Grid.Column="0" Background="#111">
+			<!-- New character button pinned to the top -->
+			<Button Classes="primary" DockPanel.Dock="Top" Margin="10,10,10,4" Click="OnNewCharacter">+ New Character</Button>
+
+			<Rectangle DockPanel.Dock="Top" Height="1" Fill="#333" Margin="10,4"/>
+
+			<!-- Scrollabale character list -->
+			<ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto">
+				<StackPanel x:Name="CharacterList" Margin="0,0,0,10" Spacing="1"/>
+			</ScrollViewer>
+		</DockPanel>
+		
+		<!-- Divider line -->
+        <Rectangle Grid.Column="1" Fill="#2a2a2a"/>
+
+		<!-- Right panel - character sheet or empty state -->
+		<Grid Grid.Column="2">
+			<!-- Empty state — shown when no character selected -->
+			<TextBlock x:Name="EmptyState" Classes="placeholder" Text="Select or create a character"/>
+
+			<!-- Character sheet — hidden until a character is loaded -->
+			<DockPanel x:Name="SheetPanel" IsVisible="False" Margin="24,20,24,20">
+				<!-- Action toolbar pinned to bottom -->
+				<StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
+					<Button Classes="action" Click="OnRouse">Rouse Check</Button>
+					<Button Classes="action" Click="OnDamage">Apply Damage</Button>
+					<Button Classes="action" Click="OnHeal">Heal</Button>
+					<Button Classes="action" Click="OnEditAttr">Edit Attributes</Button>
+					<Button Classes="action" Click="OnEditSkills">Edit Skills</Button>
+					<Button Classes="action" Click="OnDelete">Delete</Button>
+				</StackPanel>
+
+				<!-- Scrollable sheet content -->
+				<ScrollViewer VerticalScrollBarVisibility="Auto">
+					<StackPanel Spacing="0">
+						<!-- Identity block -->
+						<TextBlock x:Name="SheetName" Classes="charName"/>
+						<TextBlock x:Name="SheetSubtitle" Classes="subtitle"/>
+						<TextBlock x:Name="SheetBloodPotency" Classes="subtitle" Margin="0,2,0,0"/>
+
+						<!-- ── ATTRIBUTES ── -->
+						<TextBlock Classes="section" Text="ATTRIBUTES"/>
+						<Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto">
+
+							<!-- Physical -->
+							<StackPanel Grid.Column="0" Spacing="3">
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Strength"/>
+									<TextBlock x:Name="AttrStrength" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Dexterity"/>
+									<TextBlock x:Name="AttrDexterity" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Stamina"/>
+									<TextBlock x:Name="AttrStamina" Classes="dots"/>
+								</StackPanel>
+							</StackPanel>
+
+							<!-- Social -->
+							<StackPanel Grid.Column="1" Spacing="3">
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Charisma"/>
+									<TextBlock x:Name="AttrCharisma" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Manipulation"/>
+									<TextBlock x:Name="AttrManipulation" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Composure"/>
+									<TextBlock x:Name="AttrComposure" Classes="dots"/>
+								</StackPanel>
+							</StackPanel>
+
+							<!-- Mental -->
+							<StackPanel Grid.Column="2" Spacing="3">
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Intelligence"/>
+									<TextBlock x:Name="AttrIntelligence" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Wits"/>
+									<TextBlock x:Name="AttrWits" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Resolve"/>
+									<TextBlock x:Name="AttrResolve" Classes="dots"/>
+								</StackPanel>
+							</StackPanel>
+
+						</Grid>
+
+						<!-- ── SKILLS ── -->
+						<TextBlock Classes="section" Text="SKILLS"/>
+						<Grid ColumnDefinitions="*,*,*">
+
+							<!-- Physical skills -->
+							<StackPanel Grid.Column="0" Spacing="3">
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Athletics"/>
+									<TextBlock x:Name="SkillAthletics" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Brawl"/>
+									<TextBlock x:Name="SkillBrawl" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Craft"/>
+									<TextBlock x:Name="SkillCraft" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Drive"/>
+									<TextBlock x:Name="SkillDrive" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Firearms"/>
+									<TextBlock x:Name="SkillFirearms" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Larceny"/>
+									<TextBlock x:Name="SkillLarceny" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Melee"/>
+									<TextBlock x:Name="SkillMelee" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Stealth"/>
+									<TextBlock x:Name="SkillStealth" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Survival"/>
+									<TextBlock x:Name="SkillSurvival" Classes="dots"/>
+								</StackPanel>
+							</StackPanel>
+
+							<!-- Social skills -->
+							<StackPanel Grid.Column="1" Spacing="3">
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Animal Ken"/>
+									<TextBlock x:Name="SkillAnimalKen" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Etiquette"/>
+									<TextBlock x:Name="SkillEtiquette" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Insight"/>
+									<TextBlock x:Name="SkillInsight" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Intimidation"/>
+									<TextBlock x:Name="SkillIntimidation" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Leadership"/>
+									<TextBlock x:Name="SkillLeadership" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Performance"/>
+									<TextBlock x:Name="SkillPerformance" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Persuasion"/>
+									<TextBlock x:Name="SkillPersuasion" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Streetwise"/>
+									<TextBlock x:Name="SkillStreetwise" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Subterfuge"/>
+									<TextBlock x:Name="SkillSubterfuge" Classes="dots"/>
+								</StackPanel>
+							</StackPanel>
+
+							<!-- Mental skills -->
+							<StackPanel Grid.Column="2" Spacing="3">
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Academics"/>
+									<TextBlock x:Name="SkillAcademics" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Awareness"/>
+									<TextBlock x:Name="SkillAwareness" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Finance"/>
+									<TextBlock x:Name="SkillFinance" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Investigation"/>
+									<TextBlock x:Name="SkillInvestigation" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Medicine"/>
+									<TextBlock x:Name="SkillMedicine" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Occult"/>
+									<TextBlock x:Name="SkillOccult" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Politics"/>
+									<TextBlock x:Name="SkillPolitics" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Science"/>
+									<TextBlock x:Name="SkillScience" Classes="dots"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Classes="statLabel" Text="Technology"/>
+									<TextBlock x:Name="SkillTechnology" Classes="dots"/>
+								</StackPanel>
+							</StackPanel>
+
+						</Grid>
+
+						<!-- ── HEALTH & WILLPOWER ── -->
+						<TextBlock Classes="section" Text="HEALTH &amp; WILLPOWER"/>
+						<StackPanel Spacing="6">
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<TextBlock Classes="statLabel" Text="Health"/>
+								<TextBlock x:Name="TrackHealth" Classes="track"/>
+								<TextBlock x:Name="WoundPenalty" Foreground="#cc0000" FontSize="12" VerticalAlignment="Center"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<TextBlock Classes="statLabel" Text="Willpower"/>
+								<TextBlock x:Name="TrackWillpower" Classes="track"/>
+							</StackPanel>
+						</StackPanel>
+
+						<!-- ── HUNGER ── -->
+						<TextBlock Classes="section" Text="HUNGER"/>
+						<TextBlock x:Name="TrackHunger" Classes="hunger"/>
+
+						<!-- Status message (rouse result, damage applied etc.) -->
+						<TextBlock x:Name="StatusMsg" Foreground="#888" FontSize="12" Margin="0,14,0,0" TextWrapping="Wrap"/>
+					</StackPanel>
+				</ScrollViewer>
+			</DockPanel>
+		</Grid>
+	</Grid>
 </Window>
