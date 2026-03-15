@@ -1,4 +1,5 @@
-﻿using VtmTool.Core.Enums;
+﻿using System;
+using VtmTool.Core.Enums;
 using VtmTool.Core.Models;
 
 namespace VtmTool.Core;

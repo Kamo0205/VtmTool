@@ -1,4 +1,5 @@
-﻿using VtmTool.Core.Models;
+﻿using System;
+using VtmTool.Core.Models;
 
 namespace VtmTool.Core;
 
