@@ -1,3 +1,5 @@
 <Solution>
   <Project Path="VtmTool.App/VtmTool.App.csproj" />
+  <Project Path="VtmTool.Core/VtmTool.Core.csproj" />
+  <Project Path="VtmTool.UI/VtmTool.UI.csproj" />
 </Solution>
