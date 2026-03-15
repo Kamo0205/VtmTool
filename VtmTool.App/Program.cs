@@ -1,6 +1,4 @@
 ﻿using Microsoft.Data.Sqlite;
-using System.Text;
-using static VtmTool.App.Program;
 
 namespace VtmTool.App;
 
