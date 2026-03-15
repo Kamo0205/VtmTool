@@ -116,6 +116,7 @@ public class Program
                 clan                  INTEGER NOT NULL,
                 generation            INTEGER NOT NULL,
                 blood_potency         INTEGER NOT NULL,
+                humanity              INTEGER NOT NULL,
                 strength              INTEGER NOT NULL,
                 dexterity             INTEGER NOT NULL,
                 stamina               INTEGER NOT NULL,
@@ -201,7 +202,7 @@ public class Program
                 // INSERT — let SQLite assign the rowid
                 cmd.CommandText = @"
                     INSERT INTO character (
-                        name, clan, generation, blood_potency,
+                        name, clan, generation, blood_potency, humanity
                         strength, dexterity, stamina,
                         charisma, manipulation, composure,
                         intelligence, wits, resolve,
@@ -215,7 +216,7 @@ public class Program
                         aggravated_willpower, superficial_willpower,
                         hunger
                     ) VALUES (
-                        $name, $clan, $generation, $blood_potency,
+                        $name, $clan, $generation, $blood_potency, $humanity
                         $strength, $dexterity, $stamina,
                         $charisma, $manipulation, $composure,
                         $intelligence, $wits, $resolve,
@@ -243,6 +244,7 @@ public class Program
                         clan                  = $clan,
                         generation            = $generation,
                         blood_potency         = $blood_potency,
+                        humanity              = $humanity,
                         strength              = $strength,
                         dexterity             = $dexterity,
                         stamina               = $stamina,
@@ -324,6 +326,7 @@ public class Program
             cmd.Parameters.AddWithValue("$clan", (byte)c.Clan);
             cmd.Parameters.AddWithValue("$generation", c.Generation);
             cmd.Parameters.AddWithValue("$blood_potency", c.BloodPotency);
+            cmd.Parameters.AddWithValue("$humanity", c.Humanity);
             cmd.Parameters.AddWithValue("$strength", c.Strength);
             cmd.Parameters.AddWithValue("$dexterity", c.Dexterity);
             cmd.Parameters.AddWithValue("$stamina", c.Stamina);
@@ -375,6 +378,7 @@ public class Program
             Clan = (Clan)r.GetByte(r.GetOrdinal("clan")),
             Generation = r.GetByte(r.GetOrdinal("generation")),
             BloodPotency = r.GetByte(r.GetOrdinal("blood_potency")),
+            Humanity = r.GetByte(r.GetOrdinal("humanity")),
             Strength = r.GetByte(r.GetOrdinal("strength")),
             Dexterity = r.GetByte(r.GetOrdinal("dexterity")),
             Stamina = r.GetByte(r.GetOrdinal("stamina")),
