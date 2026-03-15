@@ -3,10 +3,10 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using VtmTool.Core;
 using VtmTool.Core.Enums;
 using VtmTool.Core.Models;
-using VtmTool.UI;
 
 namespace VtmTool.UI;
 
@@ -172,17 +172,13 @@ public partial class MainWindow : Window
 
     // Button handlers
 
-    void OnNewCharacter(object? sender, RoutedEventArgs e)
+    async Task OnNewCharacter(object? sender, RoutedEventArgs e)
     {
         // Creation wizard is a separate dialog — opens synchronously for now
         // and returns the created character.
         
         var wizard = new CreationWizard();
-        wizard.ShowDialog(this).ContinueWith(t =>
-        {
-            // Run on UI thread after dialog closes
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-            {
+        await wizard.ShowDialog(this);
                 if (wizard.Result is Character created)
                 {
                     var saved = Db.SaveCharacter(created);
@@ -191,8 +187,6 @@ public partial class MainWindow : Window
                     SelectCharacter(_characters.Count - 1);
                     SetStatus($"'{saved.Name}' created.");
                 }
-            });
-        });
     }
 
     void OnRouse(object? sender, RoutedEventArgs e)
@@ -253,29 +247,15 @@ public partial class MainWindow : Window
         SetStatus($"Damage updated.");
     }
 
-    async void OnEditAttr(object? sender, RoutedEventArgs e)
+    async void OnEditCharacter(object? sender, RoutedEventArgs e)
     {
         if (_selectedIdx < 0) return;
-        var c = _characters[_selectedIdx];
-        var dialog = new AttributeDialog(c);
-        await dialog.ShowDialog(this);
-        if (dialog.Confirmed)
+        var wizard = new CreationWizard();
+        await wizard.ShowDialog(this);
+        if (wizard.Result is Character updated)
         {
-            Commit((Character)dialog.Result);
-            SetStatus("Attributes updated.");
-        }
-    }
-
-    async void OnEditSkills(object? sender, RoutedEventArgs e)
-    {
-        if (_selectedIdx < 0) return;
-        var c = _characters[_selectedIdx];
-        var dialog = new SkillDialog(c);
-        await dialog.ShowDialog(this);
-        if (dialog.Confirmed)
-        {
-            Commit((Character)dialog.Result);
-            SetStatus("Skills updated.");
+            Commit(updated);
+            SetStatus("Character updated.");
         }
     }
 
