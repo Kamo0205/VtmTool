@@ -486,6 +486,24 @@ public class Program
         {
 
         }
+
+        // Returns the index in characters, or -1.
+        public static int FindByName(List<Character> characters, string name)
+        {
+            for (int i = 0; i < characters.Count; i++)
+                if (string.Equals(characters[i].Name, name, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            return -1;
+    }
+
+        public static void DeleteCharacter(List<Character> characters, string name)
+        {
+            int idx = FindByName(characters, name);
+            if (idx < 0) { Console.WriteLine($"  No character named '{name}'."); return; }
+            Db.DeleteCharacter(characters[idx].Id);
+            characters.RemoveAt(idx);
+            Console.WriteLine($"  Deleted '{name}'.");
+        }
     }
 
     public readonly struct Print
