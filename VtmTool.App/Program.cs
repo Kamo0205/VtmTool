@@ -718,12 +718,18 @@ public static class Print
     static void SectionHeader(string title) =>
         Console.WriteLine($"\n  \x1b[0;33m── {title} ──\x1b[0m");
 
+    static string ClanName(Clan c) => c switch
+    {
+        Clan.Banu_Haqim => "Banu Haqim",
+        _ => c.ToString()
+    };
+
     // Full V5 character sheet.
     public static void Sheet(in Character c)
     {
         Console.WriteLine();
         Console.WriteLine($"  \x1b[1m{c.Name}\x1b[0m");
-        Console.WriteLine($"  {c.Clan}  ·  {c.Generation}th Generation  ·  Humanity {Dots(c.Humanity, 10)}");
+        Console.WriteLine($"  {ClanName(c.Clan)}  ·  {c.Generation}th Generation  ·  Humanity {Dots(c.Humanity, 10)}");
         Console.WriteLine($"  Blood Potency {Dots(c.BloodPotency)}  (max {Rules.MaxBloodPotency(c.Generation)})");
 
         SectionHeader("ATTRIBUTES");
