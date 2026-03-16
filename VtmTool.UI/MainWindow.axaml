@@ -124,222 +124,90 @@
 		<!-- ── CHARACTER SHEET ──────────────────────────────── -->
 		<Grid Grid.Column="2">
 
-			<TextBlock x:Name="EmptyState"
-                       Classes="placeholder"
-                       Text="Select or create a character"/>
+			<TextBlock x:Name="EmptyState" Classes="placeholder" Text="Select or create a character"/>
 
-			<DockPanel x:Name="SheetPanel" IsVisible="False" Margin="24,20,24,20">
+			<Grid x:Name="SheetPanel" IsVisible="False" RowDefinitions="*,Auto,Auto,Auto">
+				<DockPanel Grid.Row="0" Margin="24,20,24,0">
+					<!-- Action toolbar -->
+					<WrapPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,16,0,0">
+						<Button Classes="action" Margin="0,0,6,6" Click="OnRouse">Rouse Check</Button>
+						<Button Classes="action" Margin="0,0,6,6" Click="OnDamage">Apply Damage</Button>
+						<Button Classes="action" Margin="0,0,6,6" Click="OnHeal">Heal</Button>
+						<Button Classes="action" Margin="0,0,6,6" Click="OnEditAttr">Edit Attributes</Button>
+						<Button Classes="action" Margin="0,0,6,6" Click="OnEditSkills">Edit Skills</Button>
+						<Button Classes="action" Margin="0,0,6,6" Click="OnEditDisciplines">Edit Disciplines</Button>
+						<Button Classes="action" Margin="0,0,0,6" Click="OnDelete">Delete</Button>
+					</WrapPanel>
 
-				<!-- Action toolbar -->
-				<WrapPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,16,0,0">
-					<Button Classes="action" Margin="0,0,6,6" Click="OnRouse">Rouse Check</Button>
-					<Button Classes="action" Margin="0,0,6,6" Click="OnDamage">Apply Damage</Button>
-					<Button Classes="action" Margin="0,0,6,6" Click="OnHeal">Heal</Button>
-					<Button Classes="action" Margin="0,0,6,6" Click="OnEditAttr">Edit Attributes</Button>
-					<Button Classes="action" Margin="0,0,6,6" Click="OnEditSkills">Edit Skills</Button>
-					<Button Classes="action" Margin="0,0,6,6" Click="OnEditDisciplines">Edit Disciplines</Button>
-					<Button Classes="action" Margin="0,0,0,6" Click="OnDelete">Delete</Button>
-				</WrapPanel>
+					<ScrollViewer VerticalScrollBarVisibility="Auto">
+						<StackPanel Spacing="0">
 
-				<ScrollViewer VerticalScrollBarVisibility="Auto">
-					<StackPanel Spacing="0">
+							<TextBlock x:Name="SheetName" Classes="charName"/>
+							<TextBlock x:Name="SheetSubtitle" Classes="subtitle"/>
+							<TextBlock x:Name="SheetBloodPotency" Classes="subtitle" Margin="0,2,0,0"/>
+							<TextBlock x:Name="SheetPredatorType" Classes="subtitle" Margin="0,2,0,0"/>
 
-						<TextBlock x:Name="SheetName" Classes="charName"/>
-						<TextBlock x:Name="SheetSubtitle" Classes="subtitle"/>
-						<TextBlock x:Name="SheetBloodPotency" Classes="subtitle" Margin="0,2,0,0"/>
+							<TextBlock Classes="section" Text="ATTRIBUTES"/>
+							<!-- Attribute columns rebuilt dynamically in RefreshSheet -->
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="*"/>
+									<ColumnDefinition Width="*"/>
+									<ColumnDefinition Width="*"/>
+								</Grid.ColumnDefinitions>
+								<StackPanel x:Name="AttrPhysicalPanel" Grid.Column="0" Spacing="3"/>
+								<StackPanel x:Name="AttrSocialPanel"   Grid.Column="1" Spacing="3"/>
+								<StackPanel x:Name="AttrMentalPanel"   Grid.Column="2" Spacing="3"/>
+							</Grid>
 
-						<TextBlock Classes="section" Text="ATTRIBUTES"/>
-						<Grid ColumnDefinitions="*,*,*">
-							<StackPanel Grid.Column="0" Spacing="3">
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Strength"/>
-									<TextBlock x:Name="AttrStrength" Classes="dots"/>
+							<TextBlock Classes="section" Text="SKILLS"/>
+							<!-- Skill columns rebuilt dynamically in RefreshSheet -->
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="*"/>
+									<ColumnDefinition Width="*"/>
+									<ColumnDefinition Width="*"/>
+								</Grid.ColumnDefinitions>
+								<StackPanel x:Name="SkillPhysicalPanel" Grid.Column="0" Spacing="3"/>
+								<StackPanel x:Name="SkillSocialPanel"   Grid.Column="1" Spacing="3"/>
+								<StackPanel x:Name="SkillMentalPanel"   Grid.Column="2" Spacing="3"/>
+							</Grid>
+
+							<TextBlock Classes="section" Text="DISCIPLINES"/>
+							<StackPanel x:Name="DisciplinePanel" Spacing="6"/>
+
+							<TextBlock Classes="section" Text="SPECIALTIES"/>
+							<StackPanel x:Name="SpecialtiesPanel" Spacing="3"/>
+
+							<TextBlock Classes="section" Text="HEALTH &amp; WILLPOWER"/>
+							<StackPanel Spacing="6">
+								<StackPanel Orientation="Horizontal" Spacing="10">
+									<TextBlock Classes="statLabel" Text="Health"/>
+									<TextBlock x:Name="TrackHealth" Classes="track"/>
+									<TextBlock x:Name="WoundPenalty" Foreground="#cc0000" FontSize="12" VerticalAlignment="Center"/>
 								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Dexterity"/>
-									<TextBlock x:Name="AttrDexterity" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Stamina"/>
-									<TextBlock x:Name="AttrStamina" Classes="dots"/>
+								<StackPanel Orientation="Horizontal" Spacing="10">
+									<TextBlock Classes="statLabel" Text="Willpower"/>
+									<TextBlock x:Name="TrackWillpower" Classes="track"/>
 								</StackPanel>
 							</StackPanel>
-							<StackPanel Grid.Column="1" Spacing="3">
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Charisma"/>
-									<TextBlock x:Name="AttrCharisma" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Manipulation"/>
-									<TextBlock x:Name="AttrManipulation" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Composure"/>
-									<TextBlock x:Name="AttrComposure" Classes="dots"/>
-								</StackPanel>
-							</StackPanel>
-							<StackPanel Grid.Column="2" Spacing="3">
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Intelligence"/>
-									<TextBlock x:Name="AttrIntelligence" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Wits"/>
-									<TextBlock x:Name="AttrWits" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Resolve"/>
-									<TextBlock x:Name="AttrResolve" Classes="dots"/>
-								</StackPanel>
-							</StackPanel>
-						</Grid>
 
-						<TextBlock Classes="section" Text="SKILLS"/>
-						<Grid ColumnDefinitions="*,*,*">
-							<StackPanel Grid.Column="0" Spacing="3">
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Athletics"/>
-									<TextBlock x:Name="SkillAthletics" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Brawl"/>
-									<TextBlock x:Name="SkillBrawl" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Craft"/>
-									<TextBlock x:Name="SkillCraft" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Drive"/>
-									<TextBlock x:Name="SkillDrive" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Firearms"/>
-									<TextBlock x:Name="SkillFirearms" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Larceny"/>
-									<TextBlock x:Name="SkillLarceny" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Melee"/>
-									<TextBlock x:Name="SkillMelee" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Stealth"/>
-									<TextBlock x:Name="SkillStealth" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Survival"/>
-									<TextBlock x:Name="SkillSurvival" Classes="dots"/>
-								</StackPanel>
-							</StackPanel>
-							<StackPanel Grid.Column="1" Spacing="3">
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Animal Ken"/>
-									<TextBlock x:Name="SkillAnimalKen" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Etiquette"/>
-									<TextBlock x:Name="SkillEtiquette" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Insight"/>
-									<TextBlock x:Name="SkillInsight" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Intimidation"/>
-									<TextBlock x:Name="SkillIntimidation" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Leadership"/>
-									<TextBlock x:Name="SkillLeadership" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Performance"/>
-									<TextBlock x:Name="SkillPerformance" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Persuasion"/>
-									<TextBlock x:Name="SkillPersuasion" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Streetwise"/>
-									<TextBlock x:Name="SkillStreetwise" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Subterfuge"/>
-									<TextBlock x:Name="SkillSubterfuge" Classes="dots"/>
-								</StackPanel>
-							</StackPanel>
-							<StackPanel Grid.Column="2" Spacing="3">
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Academics"/>
-									<TextBlock x:Name="SkillAcademics" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Awareness"/>
-									<TextBlock x:Name="SkillAwareness" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Finance"/>
-									<TextBlock x:Name="SkillFinance" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Investigation"/>
-									<TextBlock x:Name="SkillInvestigation" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Medicine"/>
-									<TextBlock x:Name="SkillMedicine" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Occult"/>
-									<TextBlock x:Name="SkillOccult" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Politics"/>
-									<TextBlock x:Name="SkillPolitics" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Science"/>
-									<TextBlock x:Name="SkillScience" Classes="dots"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Classes="statLabel" Text="Technology"/>
-									<TextBlock x:Name="SkillTechnology" Classes="dots"/>
-								</StackPanel>
-							</StackPanel>
-						</Grid>
+							<TextBlock Classes="section" Text="HUNGER"/>
+							<TextBlock x:Name="TrackHunger" Classes="hunger"/>
 
-						<TextBlock Classes="section" Text="DISCIPLINES"/>
-						<StackPanel x:Name="DisciplinePanel" Spacing="6"/>
+							<TextBlock x:Name="StatusMsg"
+									   Foreground="#888"
+									   FontSize="12"
+									   Margin="0,14,0,0"
+									   TextWrapping="Wrap"/>
 
-						<TextBlock Classes="section" Text="HEALTH &amp; WILLPOWER"/>
-						<StackPanel Spacing="6">
-							<StackPanel Orientation="Horizontal" Spacing="10">
-								<TextBlock Classes="statLabel" Text="Health"/>
-								<TextBlock x:Name="TrackHealth" Classes="track"/>
-								<TextBlock x:Name="WoundPenalty" Foreground="#cc0000" FontSize="12" VerticalAlignment="Center"/>
-							</StackPanel>
-							<StackPanel Orientation="Horizontal" Spacing="10">
-								<TextBlock Classes="statLabel" Text="Willpower"/>
-								<TextBlock x:Name="TrackWillpower" Classes="track"/>
-							</StackPanel>
 						</StackPanel>
-
-						<TextBlock Classes="section" Text="HUNGER"/>
-						<TextBlock x:Name="TrackHunger" Classes="hunger"/>
-
-						<TextBlock x:Name="StatusMsg"
-                                   Foreground="#888"
-                                   FontSize="12"
-                                   Margin="0,14,0,0"
-                                   TextWrapping="Wrap"/>
-
-					</StackPanel>
-				</ScrollViewer>
-			</DockPanel>
+					</ScrollViewer>
+				</DockPanel>
+				<ui:NotesPanel x:Name="NotesPanel" Grid.Row="1" Margin="24,0,24,12"/>
+				<ui:XpPanel x:Name="XpPanel" Grid.Row="2" Margin="24,0,24,12"/>
+				<ui:TraitsPanel x:Name="TraitsPanel" Grid.Row="3" Margin="24,0,24,12"/>
+			</Grid>
 		</Grid>
 
 		<Rectangle Grid.Column="3" Fill="#2a2a2a"/>

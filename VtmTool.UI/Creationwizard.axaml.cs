@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -19,6 +20,8 @@ public partial class CreationWizard : Window
     // =========================================================================
     public Character? Result { get; private set; }
     public List<Discipline> PendingDisciplines { get; } = new(3);
+    public string[] PendingSpecialties { get; private set; } = Array.Empty<string>();
+    public PredatorType PendingPredatorType { get; private set; } = PredatorType.None;
 
     // =========================================================================
     // Working state
@@ -33,25 +36,28 @@ public partial class CreationWizard : Window
 
     int _step = 0;
 
-    // Step 0
+    // Step 0 — Identity
     TextBox? _nameBox;
     ComboBox? _clanBox;
 
-    // Step 1 — attribute priority dropdowns
-    readonly ComboBox[] _attrPriority = new ComboBox[3];
+    // Step 1 — Predator Type
+    PredatorType _selectedPredatorType = PredatorType.None;
+    DisciplineName? _predDiscChoice = null;
+    string? _predSkillBChoice = null;
+    Border? _selectedPredCard = null;
+    DisciplineName? _pendingPredDisc = null;
 
-    // Step 2 — getValue delegates from dot pickers, indexed [categoryIndex, attrIndex]
+    // Step 2 — Attribute priority
+    readonly ComboBox[] _attrPriority = new ComboBox[3];
     readonly Func<int>[,] _attrGet = new Func<int>[3, 3];
     readonly TextBlock[] _attrBudgetLabel = new TextBlock[3];
 
-    // Step 3 — skill priority dropdowns
+    // Step 4 — Skill priority
     readonly ComboBox[] _skillPriority = new ComboBox[3];
-
-    // Step 4 — getValue delegates from dot pickers, indexed [categoryIndex, skillIndex]
     readonly Func<int>[,] _skillGet = new Func<int>[3, 9];
     readonly TextBlock[] _skillBudgetLabel = new TextBlock[3];
 
-    // Step 5 — disciplines
+    // Step 6 — Disciplines
     readonly Func<int>[] _discGet = new Func<int>[3];
     TextBlock? _discBudgetLabel;
 
@@ -67,12 +73,12 @@ public partial class CreationWizard : Window
 
     static readonly string[][] SkillNames =
     {
-        new[] { "Athletics", "Brawl",      "Craft",  "Drive",          "Firearms",
-                "Larceny",   "Melee",      "Stealth","Survival"                     },
-        new[] { "Animal Ken","Etiquette",  "Insight","Intimidation",   "Leadership",
-                "Performance","Persuasion","Streetwise","Subterfuge"               },
-        new[] { "Academics", "Awareness",  "Finance","Investigation",  "Medicine",
-                "Occult",    "Politics",   "Science","Technology"                   },
+        new[] { "Athletics","Brawl",    "Craft",  "Drive",         "Firearms",
+                "Larceny",  "Melee",    "Stealth","Survival"                   },
+        new[] { "Animal Ken","Etiquette","Insight","Intimidation",  "Leadership",
+                "Performance","Persuasion","Streetwise","Subterfuge"           },
+        new[] { "Academics","Awareness","Finance","Investigation",  "Medicine",
+                "Occult",   "Politics", "Science","Technology"                 },
     };
 
     static readonly string[] CatLabels = { "Physical", "Social", "Mental" };
@@ -82,7 +88,7 @@ public partial class CreationWizard : Window
     // =========================================================================
     // Constructors
     // =========================================================================
-    public CreationWizard() : this(0) { }    // required by Avalonia XAML loader
+    public CreationWizard() : this(0) { }
 
     public CreationWizard(int startStep = 0)
     {
@@ -90,11 +96,10 @@ public partial class CreationWizard : Window
         ShowStep(startStep);
     }
 
-    // Seed the clan before showing the discipline step from an edit context.
     public void SeedClan(Clan clan) => _c.Clan = clan;
 
     // =========================================================================
-    // Step routing
+    // Step routing  (0–7, total 8 steps)
     // =========================================================================
     void ShowStep(int step)
     {
@@ -104,16 +109,17 @@ public partial class CreationWizard : Window
         switch (step)
         {
             case 0: BuildIdentityStep(); break;
-            case 1: BuildAttrPrioStep(); break;
-            case 2: BuildAttrDotsStep(); break;
-            case 3: BuildSkillPrioStep(); break;
-            case 4: BuildSkillDotsStep(); break;
-            case 5: BuildDisciplineStep(); break;
-            case 6: BuildReviewStep(); break;
+            case 1: BuildPredatorTypeStep(); break;
+            case 2: BuildAttrPrioStep(); break;
+            case 3: BuildAttrDotsStep(); break;
+            case 4: BuildSkillPrioStep(); break;
+            case 5: BuildSkillDotsStep(); break;
+            case 6: BuildDisciplineStep(); break;
+            case 7: BuildReviewStep(); break;
         }
 
         BackBtn.IsEnabled = step > 0;
-        NextBtn.Content = step == 6 ? "Create" : "Next";
+        NextBtn.Content = step == 7 ? "Create" : "Next";
     }
 
     // =========================================================================
@@ -160,24 +166,251 @@ public partial class CreationWizard : Window
     }
 
     // =========================================================================
-    // Step 1 — Attribute priority
+    // Step 1 — Predator Type
+    // =========================================================================
+    void BuildPredatorTypeStep()
+    {
+        StepTitle.Text = "Step 2 — Predator Type";
+        StepHint.Text = "How does your vampire hunt? Highlighted types match your clan's disciplines.";
+
+        var inClan = new HashSet<DisciplineName>(ClanDisciplines.For(_c.Clan));
+
+        // Card list lives in a ScrollViewer so the choice area can appear below it
+        var scroll = new ScrollViewer
+        {
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            MaxHeight = 340,
+        };
+        var list = new StackPanel { Spacing = 5 };
+
+        foreach (var pt in PredatorTypes.All)
+        {
+            bool compatible = false;
+            foreach (var d in pt.DisciplineChoice)
+                if (inClan.Contains(d)) { compatible = true; break; }
+
+            list.Children.Add(BuildPredatorCard(pt, compatible));
+        }
+
+        scroll.Content = list;
+        StepContent.Children.Add(scroll);
+    }
+
+    Border BuildPredatorCard(PredatorTypeData pt, bool compatible)
+    {
+        string borderHex = compatible ? "#5a0000" : "#2a2a2a";
+        string nameHex = compatible ? "#cc2200" : "#888";
+
+        var card = new Border
+        {
+            Background = Brush("#1a1a1a"),
+            BorderBrush = Brush(borderHex),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(3),
+            Padding = new Thickness(12, 8),
+            Cursor = new Cursor(StandardCursorType.Hand),
+        };
+
+        var stack = new StackPanel { Spacing = 3 };
+        stack.Children.Add(new TextBlock
+        {
+            Text = PredatorTypes.DisplayName(pt.Type),
+            Foreground = Brush(nameHex),
+            FontSize = 13,
+            FontWeight = FontWeight.Bold,
+        });
+        stack.Children.Add(new TextBlock
+        {
+            Text = pt.Description,
+            Foreground = Brush("#666"),
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap,
+        });
+
+        string skillB = pt.SkillBChoice != null
+            ? $"{pt.SkillBChoice[0]} or {pt.SkillBChoice[1]}"
+            : pt.SkillBonuses[1];
+        string discList = string.Join(" or ",
+            Array.ConvertAll(pt.DisciplineChoice, d => ClanDisciplines.DisplayName(d)));
+
+        stack.Children.Add(new TextBlock
+        {
+            Text = $"+1 {pt.SkillBonuses[0]}  ·  +1 {skillB}  ·  +1 {discList}  ·  {pt.Specialty}",
+            Foreground = Brush("#aaa"),
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap,
+        });
+
+        if (pt.ReducesHumanity)
+            stack.Children.Add(new TextBlock
+            {
+                Text = "⚠ Reduces starting Humanity by 1",
+                Foreground = Brush("#cc4400"),
+                FontSize = 11,
+            });
+
+        card.Child = stack;
+        card.PointerPressed += (_, _) => SelectPredatorCard(card, pt);
+
+        if (_selectedPredatorType == pt.Type)
+            SelectPredatorCard(card, pt);
+
+        return card;
+    }
+
+    void SelectPredatorCard(Border card, PredatorTypeData pt)
+    {
+        if (_selectedPredCard != null)
+        {
+            _selectedPredCard.Background = Brush("#1a1a1a");
+            _selectedPredCard.BorderThickness = new Thickness(1);
+        }
+
+        _selectedPredCard = card;
+        _selectedPredatorType = pt.Type;
+        card.Background = Brush("#2e0000");
+        card.BorderThickness = new Thickness(2);
+
+        // Remove any choice UI added by a previous selection
+        while (StepContent.Children.Count > 1)
+            StepContent.Children.RemoveAt(StepContent.Children.Count - 1);
+
+        // Discipline choice
+        if (pt.DisciplineChoice.Length > 1)
+        {
+            StepContent.Children.Add(MakeSectionLabel("DISCIPLINE BONUS — Choose one:"));
+            var panel = new StackPanel { Spacing = 6 };
+            bool first = true;
+            foreach (var d in pt.DisciplineChoice)
+            {
+                var dn = d; // capture
+                var rb = new RadioButton
+                {
+                    Content = ClanDisciplines.DisplayName(d),
+                    Tag = d,
+                    Foreground = Brush("#e0e0e0"),
+                    FontFamily = new FontFamily("Consolas,Courier New,monospace"),
+                    FontSize = 12,
+                    GroupName = "DiscChoice",
+                };
+                if (first) { first = false; rb.IsChecked = true; _predDiscChoice = d; }
+                rb.IsCheckedChanged += (s, _) =>
+                {
+                    if (s is RadioButton r && r.IsChecked == true && r.Tag is DisciplineName x)
+                        _predDiscChoice = x;
+                };
+                panel.Children.Add(rb);
+            }
+            StepContent.Children.Add(panel);
+        }
+        else
+        {
+            _predDiscChoice = pt.DisciplineChoice[0];
+        }
+
+        // Skill B choice (Alleycat only)
+        if (pt.SkillBChoice != null)
+        {
+            StepContent.Children.Add(MakeSectionLabel("SKILL BONUS — Choose one:"));
+            var panel = new StackPanel { Spacing = 6 };
+            bool first = true;
+            foreach (var s in pt.SkillBChoice)
+            {
+                var sk = s; // capture
+                var rb = new RadioButton
+                {
+                    Content = s,
+                    Tag = s,
+                    Foreground = Brush("#e0e0e0"),
+                    FontFamily = new FontFamily("Consolas,Courier New,monospace"),
+                    FontSize = 12,
+                    GroupName = "SkillBChoice",
+                };
+                if (first) { first = false; rb.IsChecked = true; _predSkillBChoice = s; }
+                rb.IsCheckedChanged += (sender, _) =>
+                {
+                    if (sender is RadioButton r && r.IsChecked == true && r.Tag is string x)
+                        _predSkillBChoice = x;
+                };
+                panel.Children.Add(rb);
+            }
+            StepContent.Children.Add(panel);
+        }
+        else
+        {
+            _predSkillBChoice = null;
+        }
+    }
+
+    bool CommitPredatorType()
+    {
+        if (_selectedPredatorType == PredatorType.None)
+        { ShowError("Choose a Predator Type to continue."); return false; }
+
+        var pt = PredatorTypes.Get(_selectedPredatorType)!.Value;
+
+        // Apply skill bonuses to working character
+        string skillB = _predSkillBChoice ?? pt.SkillBonuses[1];
+        ApplySkillBonus(ref _c, pt.SkillBonuses[0], 1);
+        ApplySkillBonus(ref _c, skillB, 1);
+
+        if (pt.ReducesHumanity)
+            _c.Humanity = (byte)Math.Max(_c.Humanity - 1, 0);
+
+        PendingPredatorType = _selectedPredatorType;
+        PendingSpecialties = new[] { pt.Specialty };
+        _pendingPredDisc = _predDiscChoice;
+        return true;
+    }
+
+    public static void ApplySkillBonus(ref Character c, string skill, int amount)
+    {
+        switch (skill)
+        {
+            case "Athletics": c.Athletics = Cap(c.Athletics, amount); break;
+            case "Brawl": c.Brawl = Cap(c.Brawl, amount); break;
+            case "Craft": c.Craft = Cap(c.Craft, amount); break;
+            case "Drive": c.Drive = Cap(c.Drive, amount); break;
+            case "Firearms": c.Firearms = Cap(c.Firearms, amount); break;
+            case "Larceny": c.Larceny = Cap(c.Larceny, amount); break;
+            case "Melee": c.Melee = Cap(c.Melee, amount); break;
+            case "Stealth": c.Stealth = Cap(c.Stealth, amount); break;
+            case "Survival": c.Survival = Cap(c.Survival, amount); break;
+            case "Animal Ken": c.AnimalKen = Cap(c.AnimalKen, amount); break;
+            case "Etiquette": c.Etiquette = Cap(c.Etiquette, amount); break;
+            case "Insight": c.Insight = Cap(c.Insight, amount); break;
+            case "Intimidation": c.Intimidation = Cap(c.Intimidation, amount); break;
+            case "Leadership": c.Leadership = Cap(c.Leadership, amount); break;
+            case "Performance": c.Performance = Cap(c.Performance, amount); break;
+            case "Persuasion": c.Persuasion = Cap(c.Persuasion, amount); break;
+            case "Streetwise": c.Streetwise = Cap(c.Streetwise, amount); break;
+            case "Subterfuge": c.Subterfuge = Cap(c.Subterfuge, amount); break;
+            case "Academics": c.Academics = Cap(c.Academics, amount); break;
+            case "Awareness": c.Awareness = Cap(c.Awareness, amount); break;
+            case "Finance": c.Finance = Cap(c.Finance, amount); break;
+            case "Investigation": c.Investigation = Cap(c.Investigation, amount); break;
+            case "Medicine": c.Medicine = Cap(c.Medicine, amount); break;
+            case "Occult": c.Occult = Cap(c.Occult, amount); break;
+            case "Politics": c.Politics = Cap(c.Politics, amount); break;
+            case "Science": c.Science = Cap(c.Science, amount); break;
+            case "Technology": c.Technology = Cap(c.Technology, amount); break;
+        }
+        static byte Cap(byte current, int add) => (byte)Math.Min(current + add, 5);
+    }
+
+    // =========================================================================
+    // Step 2 — Attribute priority
     // =========================================================================
     void BuildAttrPrioStep()
     {
-        StepTitle.Text = "Step 2 — Attribute Priority";
+        StepTitle.Text = "Step 3 — Attribute Priority";
         StepHint.Text = "Primary gets 5 total dots · Secondary 4 · Tertiary 3";
 
         string[] labels = { "Primary (total 5)", "Secondary (total 4)", "Tertiary (total 3)" };
         for (int i = 0; i < 3; i++)
         {
             StepContent.Children.Add(MakeLabel(labels[i]));
-            var box = new ComboBox
-            {
-                Width = 300,
-                Background = Brush("#222"),
-                Foreground = Brush("#e0e0e0"),
-                BorderBrush = Brush("#444"),
-            };
+            var box = new ComboBox { Width = 300, Background = Brush("#222"), Foreground = Brush("#e0e0e0") };
             foreach (string cat in CatLabels)
                 box.Items.Add(new ComboBoxItem { Content = cat });
             box.SelectedIndex = i;
@@ -199,12 +432,12 @@ public partial class CreationWizard : Window
     }
 
     // =========================================================================
-    // Step 2 — Attribute dots
+    // Step 3 — Attribute dots
     // =========================================================================
     void BuildAttrDotsStep()
     {
-        StepTitle.Text = "Step 3 — Assign Attribute Dots";
-        StepHint.Text = "Click dots to set · Click active dot to decrement · Min 1";
+        StepTitle.Text = "Step 4 — Assign Attribute Dots";
+        StepHint.Text = "Click dots to set · Minimum 1 per attribute";
 
         for (int p = 0; p < 3; p++)
         {
@@ -212,60 +445,34 @@ public partial class CreationWizard : Window
             int budget = AttrBudgets[p];
             int pCopy = p;
 
-            // Section header + live budget counter
             var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
             header.Children.Add(MakeSectionLabel(CatLabels[catIdx]));
-            var budgetLbl = new TextBlock
-            {
-                Text = $"0 / {budget}",
-                FontSize = 11,
-                Foreground = Brush("#666"),
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-            _attrBudgetLabel[p] = budgetLbl;
-            header.Children.Add(budgetLbl);
+            var lbl = new TextBlock { Text = $"0 / {budget}", FontSize = 11, Foreground = Brush("#666"), VerticalAlignment = VerticalAlignment.Center };
+            _attrBudgetLabel[p] = lbl;
+            header.Children.Add(lbl);
             StepContent.Children.Add(header);
 
             for (int a = 0; a < 3; a++)
             {
                 var row = MakeRow();
-                row.Children.Add(new TextBlock
-                {
-                    Text = AttrNames[catIdx][a],
-                    Width = 130,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Foreground = Brush("#aaa"),
-                });
-                row.Children.Add(MakeDotPicker(
-                    min: 1, max: 5, initial: 1,
-                    onChange: _ => RefreshAttrBudget(pCopy),
-                    getValue: out _attrGet[catIdx, a]));
+                row.Children.Add(new TextBlock { Text = AttrNames[catIdx][a], Width = 130, VerticalAlignment = VerticalAlignment.Center, Foreground = Brush("#aaa") });
+                row.Children.Add(MakeDotPicker(min: 1, max: 5, initial: 1, onChange: _ => RefreshAttrBudget(pCopy), getValue: out _attrGet[catIdx, a]));
                 StepContent.Children.Add(row);
             }
-
             RefreshAttrBudget(p);
         }
     }
 
-    void RefreshAttrBudget(int p)
-    {
-        int catIdx = _attrPriority[p].SelectedIndex;
-        int budget = AttrBudgets[p];
-        int sum = SumGet(_attrGet, catIdx, 3);
-        SetBudgetLabel(_attrBudgetLabel[p], sum, budget);
-    }
+    void RefreshAttrBudget(int p) => SetBudgetLabel(_attrBudgetLabel[p], SumGet(_attrGet, _attrPriority[p].SelectedIndex, 3), AttrBudgets[p]);
 
     bool CommitAttrDots()
     {
         for (int p = 0; p < 3; p++)
         {
             int catIdx = _attrPriority[p].SelectedIndex;
-            int budget = AttrBudgets[p];
             int sum = SumGet(_attrGet, catIdx, 3);
-            if (sum != budget)
-            { ShowError($"{CatLabels[catIdx]} attributes must total {budget} (currently {sum})."); return false; }
+            if (sum != AttrBudgets[p]) { ShowError($"{CatLabels[catIdx]} attributes must total {AttrBudgets[p]} (currently {sum})."); return false; }
         }
-
         _c.Strength = G(_attrGet[0, 0]); _c.Dexterity = G(_attrGet[0, 1]); _c.Stamina = G(_attrGet[0, 2]);
         _c.Charisma = G(_attrGet[1, 0]); _c.Manipulation = G(_attrGet[1, 1]); _c.Composure = G(_attrGet[1, 2]);
         _c.Intelligence = G(_attrGet[2, 0]); _c.Wits = G(_attrGet[2, 1]); _c.Resolve = G(_attrGet[2, 2]);
@@ -273,24 +480,18 @@ public partial class CreationWizard : Window
     }
 
     // =========================================================================
-    // Step 3 — Skill priority
+    // Step 4 — Skill priority
     // =========================================================================
     void BuildSkillPrioStep()
     {
-        StepTitle.Text = "Step 4 — Skill Priority";
+        StepTitle.Text = "Step 5 — Skill Priority";
         StepHint.Text = "Primary 8 dots · Secondary 6 · Tertiary 4 · Max 3 per skill";
 
         string[] labels = { "Primary (8 dots)", "Secondary (6 dots)", "Tertiary (4 dots)" };
         for (int i = 0; i < 3; i++)
         {
             StepContent.Children.Add(MakeLabel(labels[i]));
-            var box = new ComboBox
-            {
-                Width = 300,
-                Background = Brush("#222"),
-                Foreground = Brush("#e0e0e0"),
-                BorderBrush = Brush("#444"),
-            };
+            var box = new ComboBox { Width = 300, Background = Brush("#222"), Foreground = Brush("#e0e0e0") };
             foreach (string cat in CatLabels)
                 box.Items.Add(new ComboBoxItem { Content = cat });
             box.SelectedIndex = i;
@@ -305,19 +506,18 @@ public partial class CreationWizard : Window
         for (int i = 0; i < 3; i++)
         {
             int idx = _skillPriority[i].SelectedIndex;
-            if (idx < 0 || !chosen.Add(idx))
-            { ShowError("Each category must be chosen exactly once."); return false; }
+            if (idx < 0 || !chosen.Add(idx)) { ShowError("Each category must be chosen exactly once."); return false; }
         }
         return true;
     }
 
     // =========================================================================
-    // Step 4 — Skill dots
+    // Step 5 — Skill dots
     // =========================================================================
     void BuildSkillDotsStep()
     {
-        StepTitle.Text = "Step 5 — Assign Skill Dots";
-        StepHint.Text = "Click dots to set · Max 3 per skill at creation";
+        StepTitle.Text = "Step 6 — Assign Skill Dots";
+        StepHint.Text = "Click dots · Max 3 per skill · Predator Type bonuses applied on top";
 
         for (int p = 0; p < 3; p++)
         {
@@ -327,65 +527,38 @@ public partial class CreationWizard : Window
 
             var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
             header.Children.Add(MakeSectionLabel(CatLabels[catIdx]));
-            var budgetLbl = new TextBlock
-            {
-                Text = $"0 / {budget}",
-                FontSize = 11,
-                Foreground = Brush("#666"),
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-            _skillBudgetLabel[p] = budgetLbl;
-            header.Children.Add(budgetLbl);
+            var lbl = new TextBlock { Text = $"0 / {budget}", FontSize = 11, Foreground = Brush("#666"), VerticalAlignment = VerticalAlignment.Center };
+            _skillBudgetLabel[p] = lbl;
+            header.Children.Add(lbl);
             StepContent.Children.Add(header);
 
             for (int s = 0; s < 9; s++)
             {
                 var row = MakeRow();
-                row.Children.Add(new TextBlock
-                {
-                    Text = SkillNames[catIdx][s],
-                    Width = 130,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Foreground = Brush("#aaa"),
-                });
-                row.Children.Add(MakeDotPicker(
-                    min: 0, max: 3, initial: 0,
-                    onChange: _ => RefreshSkillBudget(pCopy),
-                    getValue: out _skillGet[catIdx, s]));
+                row.Children.Add(new TextBlock { Text = SkillNames[catIdx][s], Width = 130, VerticalAlignment = VerticalAlignment.Center, Foreground = Brush("#aaa") });
+                row.Children.Add(MakeDotPicker(min: 0, max: 3, initial: 0, onChange: _ => RefreshSkillBudget(pCopy), getValue: out _skillGet[catIdx, s]));
                 StepContent.Children.Add(row);
             }
-
             RefreshSkillBudget(p);
         }
     }
 
-    void RefreshSkillBudget(int p)
-    {
-        int catIdx = _skillPriority[p].SelectedIndex;
-        int budget = SkillBudgets[p];
-        int sum = SumGet(_skillGet, catIdx, 9);
-        SetBudgetLabel(_skillBudgetLabel[p], sum, budget);
-    }
+    void RefreshSkillBudget(int p) => SetBudgetLabel(_skillBudgetLabel[p], SumGet(_skillGet, _skillPriority[p].SelectedIndex, 9), SkillBudgets[p]);
 
     bool CommitSkillDots()
     {
         for (int p = 0; p < 3; p++)
         {
             int catIdx = _skillPriority[p].SelectedIndex;
-            int budget = SkillBudgets[p];
             int sum = SumGet(_skillGet, catIdx, 9);
-            if (sum != budget)
-            { ShowError($"{CatLabels[catIdx]} skills must total {budget} (currently {sum})."); return false; }
+            if (sum != SkillBudgets[p]) { ShowError($"{CatLabels[catIdx]} skills must total {SkillBudgets[p]} (currently {sum})."); return false; }
         }
-
         _c.Athletics = G(_skillGet[0, 0]); _c.Brawl = G(_skillGet[0, 1]); _c.Craft = G(_skillGet[0, 2]);
         _c.Drive = G(_skillGet[0, 3]); _c.Firearms = G(_skillGet[0, 4]); _c.Larceny = G(_skillGet[0, 5]);
         _c.Melee = G(_skillGet[0, 6]); _c.Stealth = G(_skillGet[0, 7]); _c.Survival = G(_skillGet[0, 8]);
-
         _c.AnimalKen = G(_skillGet[1, 0]); _c.Etiquette = G(_skillGet[1, 1]); _c.Insight = G(_skillGet[1, 2]);
         _c.Intimidation = G(_skillGet[1, 3]); _c.Leadership = G(_skillGet[1, 4]); _c.Performance = G(_skillGet[1, 5]);
         _c.Persuasion = G(_skillGet[1, 6]); _c.Streetwise = G(_skillGet[1, 7]); _c.Subterfuge = G(_skillGet[1, 8]);
-
         _c.Academics = G(_skillGet[2, 0]); _c.Awareness = G(_skillGet[2, 1]); _c.Finance = G(_skillGet[2, 2]);
         _c.Investigation = G(_skillGet[2, 3]); _c.Medicine = G(_skillGet[2, 4]); _c.Occult = G(_skillGet[2, 5]);
         _c.Politics = G(_skillGet[2, 6]); _c.Science = G(_skillGet[2, 7]); _c.Technology = G(_skillGet[2, 8]);
@@ -393,44 +566,31 @@ public partial class CreationWizard : Window
     }
 
     // =========================================================================
-    // Step 5 — Disciplines
+    // Step 6 — Disciplines
     // =========================================================================
     void BuildDisciplineStep()
     {
-        StepTitle.Text = "Step 6 — Disciplines";
-        StepHint.Text = "Distribute 3 dots across your clan's disciplines (V5 p.152).";
+        StepTitle.Text = "Step 7 — Disciplines";
+        StepHint.Text = "Distribute 3 dots · Predator Type adds +1 to your chosen discipline on top.";
 
         var inClan = ClanDisciplines.For(_c.Clan);
 
         var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
         header.Children.Add(MakeSectionLabel("IN-CLAN DISCIPLINES"));
-        _discBudgetLabel = new TextBlock
-        {
-            Text = "0 / 3",
-            FontSize = 11,
-            Foreground = Brush("#666"),
-            VerticalAlignment = VerticalAlignment.Center,
-        };
+        _discBudgetLabel = new TextBlock { Text = "0 / 3", FontSize = 11, Foreground = Brush("#666"), VerticalAlignment = VerticalAlignment.Center };
         header.Children.Add(_discBudgetLabel);
         StepContent.Children.Add(header);
 
         for (int i = 0; i < 3; i++)
         {
+            bool isPredBonus = _pendingPredDisc == inClan[i];
             var row = MakeRow();
-            row.Children.Add(new TextBlock
-            {
-                Text = ClanDisciplines.DisplayName(inClan[i]),
-                Width = 160,
-                VerticalAlignment = VerticalAlignment.Center,
-                Foreground = Brush("#aaa"),
-            });
-            row.Children.Add(MakeDotPicker(
-                min: 0, max: 5, initial: 1,
-                onChange: _ => RefreshDiscBudget(),
-                getValue: out _discGet[i]));
+            row.Children.Add(new TextBlock { Text = ClanDisciplines.DisplayName(inClan[i]), Width = 160, VerticalAlignment = VerticalAlignment.Center, Foreground = Brush("#aaa") });
+            row.Children.Add(MakeDotPicker(min: 0, max: 5, initial: 0, onChange: _ => RefreshDiscBudget(), getValue: out _discGet[i]));
+            if (isPredBonus)
+                row.Children.Add(new TextBlock { Text = "+1 Predator bonus", Foreground = Brush("#cc4400"), FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) });
             StepContent.Children.Add(row);
         }
-
         RefreshDiscBudget();
     }
 
@@ -445,31 +605,27 @@ public partial class CreationWizard : Window
     {
         int sum = 0;
         for (int i = 0; i < 3; i++) sum += _discGet[i]?.Invoke() ?? 0;
-        if (sum != 3)
-        { ShowError($"Disciplines must total 3 dots (currently {sum})."); return false; }
+        if (sum != 3) { ShowError($"Disciplines must total 3 dots (currently {sum})."); return false; }
 
         var inClan = ClanDisciplines.For(_c.Clan);
         PendingDisciplines.Clear();
         for (int i = 0; i < 3; i++)
         {
             byte rating = (byte)(_discGet[i]?.Invoke() ?? 0);
+            if (_pendingPredDisc == inClan[i])
+                rating = (byte)Math.Min(rating + 1, 5);
             if (rating == 0) continue;
-            PendingDisciplines.Add(new Discipline
-            {
-                CharacterId = 0,
-                Name = inClan[i],
-                Rating = rating,
-            });
+            PendingDisciplines.Add(new Discipline { CharacterId = 0, Name = inClan[i], Rating = rating });
         }
         return true;
     }
 
     // =========================================================================
-    // Step 6 — Review
+    // Step 7 — Review
     // =========================================================================
     void BuildReviewStep()
     {
-        StepTitle.Text = "Step 7 — Review";
+        StepTitle.Text = "Step 8 — Review";
         StepHint.Text = "Confirm to create the character.";
 
         void Row(string lbl, string val)
@@ -482,8 +638,8 @@ public partial class CreationWizard : Window
 
         Row("Name", _c.Name ?? "");
         Row("Clan", ClanDisplayName(_c.Clan));
+        Row("Predator Type", PredatorTypes.DisplayName(PendingPredatorType));
         Row("Generation", $"{_c.Generation}th");
-        Row("Blood Potency", $"{_c.BloodPotency}");
         Row("Humanity", $"{_c.Humanity}");
         Row("Hunger", $"{_c.Hunger}");
         Divider();
@@ -497,8 +653,13 @@ public partial class CreationWizard : Window
         {
             Divider();
             foreach (var d in PendingDisciplines)
-                Row(ClanDisciplines.DisplayName(d.Name),
-                    new string('●', d.Rating) + new string('○', 5 - d.Rating));
+                Row(ClanDisciplines.DisplayName(d.Name), new string('●', d.Rating) + new string('○', 5 - d.Rating));
+        }
+        if (PendingSpecialties.Length > 0)
+        {
+            Divider();
+            foreach (var s in PendingSpecialties)
+                Row("Specialty", s);
         }
     }
 
@@ -510,15 +671,16 @@ public partial class CreationWizard : Window
         bool ok = _step switch
         {
             0 => CommitIdentity(),
-            1 => CommitAttrPriority(),
-            2 => CommitAttrDots(),
-            3 => CommitSkillPriority(),
-            4 => CommitSkillDots(),
-            5 => CommitDisciplines(),
-            6 => Finish(),
+            1 => CommitPredatorType(),
+            2 => CommitAttrPriority(),
+            3 => CommitAttrDots(),
+            4 => CommitSkillPriority(),
+            5 => CommitSkillDots(),
+            6 => CommitDisciplines(),
+            7 => Finish(),
             _ => true
         };
-        if (ok && _step < 6) ShowStep(_step + 1);
+        if (ok && _step < 7) ShowStep(_step + 1);
     }
 
     void OnBack(object? sender, RoutedEventArgs e) { if (_step > 0) ShowStep(_step - 1); }
@@ -527,15 +689,8 @@ public partial class CreationWizard : Window
 
     // =========================================================================
     // Dot picker
-    //
-    // Returns a StackPanel of `max` clickable dot buttons.
-    // Clicking dot i+1 sets value to i+1.
-    // Clicking the active dot decrements by 1 (clamped to min).
-    // onChange fires after every change — used to update budget labels.
-    // getValue is a delegate the caller stores to read the live value.
     // =========================================================================
-    static StackPanel MakeDotPicker(int min, int max, int initial,
-                                     Action<int> onChange, out Func<int> getValue)
+    static StackPanel MakeDotPicker(int min, int max, int initial, Action<int> onChange, out Func<int> getValue)
     {
         int current = Math.Clamp(initial, min, max);
         var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3 };
@@ -547,9 +702,8 @@ public partial class CreationWizard : Window
             {
                 buttons[i].Content = i < current ? "●" : "○";
                 buttons[i].Foreground = new SolidColorBrush(
-                    i < current
-                        ? global::Avalonia.Media.Color.Parse("#cc2200")
-                        : global::Avalonia.Media.Color.Parse("#444"));
+                    i < current ? global::Avalonia.Media.Color.Parse("#cc2200")
+                                : global::Avalonia.Media.Color.Parse("#444"));
             }
         }
 
@@ -570,94 +724,32 @@ public partial class CreationWizard : Window
             {
                 current = (current == dotRating && dotRating > min) ? dotRating - 1 : dotRating;
                 current = Math.Clamp(current, min, max);
-                Redraw();
-                onChange(current);
+                Redraw(); onChange(current);
             };
             buttons[i] = btn;
             panel.Children.Add(btn);
         }
-
         Redraw();
         getValue = () => current;
         return panel;
     }
 
     // =========================================================================
-    // Small helpers
+    // UI helpers
     // =========================================================================
-    static StackPanel MakeRow() => new StackPanel
-    {
-        Orientation = Orientation.Horizontal,
-        Spacing = 12,
-        Margin = new Thickness(0, 2, 0, 2),
-    };
-
-    static TextBlock MakeLabel(string text) => new TextBlock
-    {
-        Text = text,
-        Foreground = Brush("#aaa"),
-        FontSize = 12,
-        Margin = new Thickness(0, 8, 0, 2),
-    };
-
-    static TextBlock MakeSectionLabel(string text) => new TextBlock
-    {
-        Text = text,
-        Foreground = Brush("#b00000"),
-        FontSize = 11,
-        FontWeight = FontWeight.Bold,
-        Margin = new Thickness(0, 12, 0, 4),
-        LetterSpacing = 1,
-    };
-
-    static void SetBudgetLabel(TextBlock? lbl, int sum, int budget)
-    {
-        if (lbl == null) return;
-        lbl.Text = $"{sum} / {budget}";
-        lbl.Foreground = sum == budget ? Brush("#00cc66") : Brush("#666");
-    }
-
-    void Divider() => StepContent.Children.Add(new Separator
-    {
-        Height = 1,
-        Background = Brush("#333"),
-        Margin = new Thickness(0, 8),
-    });
-
+    static StackPanel MakeRow() => new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Margin = new Thickness(0, 2, 0, 2) };
+    static TextBlock MakeLabel(string t) => new TextBlock { Text = t, Foreground = Brush("#aaa"), FontSize = 12, Margin = new Thickness(0, 8, 0, 2) };
+    static TextBlock MakeSectionLabel(string t) => new TextBlock { Text = t, Foreground = Brush("#b00000"), FontSize = 11, FontWeight = FontWeight.Bold, Margin = new Thickness(0, 12, 0, 4), LetterSpacing = 1 };
+    static void SetBudgetLabel(TextBlock? lbl, int sum, int budget) { if (lbl == null) return; lbl.Text = $"{sum} / {budget}"; lbl.Foreground = sum == budget ? Brush("#00cc66") : Brush("#666"); }
+    void Divider() => StepContent.Children.Add(new Separator { Height = 1, Background = Brush("#333"), Margin = new Thickness(0, 8) });
     void ShowError(string msg)
     {
-        if (StepContent.Children.Count > 0 &&
-            StepContent.Children[^1] is TextBlock { Tag: "error" } prev)
+        if (StepContent.Children.Count > 0 && StepContent.Children[^1] is TextBlock { Tag: "error" } prev)
             StepContent.Children.Remove(prev);
-
-        StepContent.Children.Add(new TextBlock
-        {
-            Text = msg,
-            Foreground = Brush("#cc0000"),
-            FontSize = 12,
-            Margin = new Thickness(0, 8, 0, 0),
-            Tag = "error",
-        });
+        StepContent.Children.Add(new TextBlock { Text = msg, Foreground = Brush("#cc0000"), FontSize = 12, Margin = new Thickness(0, 8, 0, 0), Tag = "error" });
     }
-
-    // Returns a SolidColorBrush from a hex string
-    static ISolidColorBrush Brush(string hex) =>
-        new SolidColorBrush(global::Avalonia.Media.Color.Parse(hex));
-
-    // Invoke a Func<int> delegate and cast to byte
+    static ISolidColorBrush Brush(string hex) => new SolidColorBrush(global::Avalonia.Media.Color.Parse(hex));
     static byte G(Func<int>? f) => (byte)(f?.Invoke() ?? 0);
-
-    // Sum a row of Func<int> delegates from a 2D array
-    static int SumGet(Func<int>[,] arr, int row, int count)
-    {
-        int sum = 0;
-        for (int i = 0; i < count; i++) sum += arr[row, i]?.Invoke() ?? 0;
-        return sum;
-    }
-
-    static string ClanDisplayName(Clan c) => c switch
-    {
-        Clan.Banu_Haqim => "Banu Haqim",
-        _ => c.ToString()
-    };
+    static int SumGet(Func<int>[,] arr, int row, int count) { int s = 0; for (int i = 0; i < count; i++) s += arr[row, i]?.Invoke() ?? 0; return s; }
+    static string ClanDisplayName(Clan c) => c == Clan.Banu_Haqim ? "Banu Haqim" : c.ToString();
 }

@@ -1,0 +1,63 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        x:Class="VtmTool.UI.XpConfirmDialog"
+        Title="Spend XP"
+        Width="340" Height="200"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#1a1a1a"
+        Foreground="#e0e0e0"
+        FontFamily="Consolas,Courier New,monospace">
+	<StackPanel Margin="24" Spacing="12">
+
+		<!-- Trait being raised -->
+		<TextBlock x:Name="TraitLabel"
+                   FontSize="15"
+                   FontWeight="Bold"
+                   Foreground="#ffffff"
+                   TextWrapping="Wrap"/>
+
+		<!-- Cost and availability -->
+		<StackPanel Spacing="4">
+			<StackPanel Orientation="Horizontal" Spacing="8">
+				<TextBlock Text="Cost:" Foreground="#666" FontSize="12" Width="80"/>
+				<TextBlock x:Name="CostLabel" Foreground="#cc2200" FontSize="12" FontWeight="Bold"/>
+			</StackPanel>
+			<StackPanel Orientation="Horizontal" Spacing="8">
+				<TextBlock Text="Available:" Foreground="#666" FontSize="12" Width="80"/>
+				<TextBlock x:Name="AvailableLabel" FontSize="12"/>
+			</StackPanel>
+			<StackPanel Orientation="Horizontal" Spacing="8">
+				<TextBlock Text="After:" Foreground="#666" FontSize="12" Width="80"/>
+				<TextBlock x:Name="AfterLabel" FontSize="12"/>
+			</StackPanel>
+		</StackPanel>
+
+		<!-- Warning if insufficient -->
+		<TextBlock x:Name="WarningLabel"
+                   Text=""
+                   Foreground="#cc4400"
+                   FontSize="11"
+                   TextWrapping="Wrap"/>
+
+		<!-- Buttons -->
+		<StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+			<Button Content="Cancel"
+                    Background="#2a2a2a"
+                    Foreground="#e0e0e0"
+                    BorderBrush="#444"
+                    Padding="14,7"
+                    Click="OnCancel"/>
+			<Button x:Name="ConfirmBtn"
+                    Content="Spend XP"
+                    Background="#5a0000"
+                    Foreground="#fff"
+                    BorderBrush="#900000"
+                    Padding="14,7"
+                    Click="OnConfirm"/>
+		</StackPanel>
+
+	</StackPanel>
+</Window>

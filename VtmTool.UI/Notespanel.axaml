@@ -1,0 +1,121 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="VtmTool.UI.NotesPanel">
+	<UserControl.Styles>
+
+		<Style Selector="TextBlock.notesHeader">
+			<Setter Property="Foreground" Value="#b00000"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="LetterSpacing" Value="2"/>
+		</Style>
+
+		<Style Selector="TabItem">
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Foreground" Value="#888"/>
+			<Setter Property="Padding" Value="10,6"/>
+		</Style>
+		<Style Selector="TabItem:selected">
+			<Setter Property="Foreground" Value="#e0e0e0"/>
+		</Style>
+
+		<Style Selector="TextBox.notes">
+			<Setter Property="Background" Value="#111"/>
+			<Setter Property="Foreground" Value="#d0d0d0"/>
+			<Setter Property="BorderBrush" Value="#2a2a2a"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="Padding" Value="8"/>
+			<Setter Property="AcceptsReturn" Value="True"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="MinHeight" Value="120"/>
+			<Setter Property="VerticalAlignment" Value="Stretch"/>
+		</Style>
+
+		<Style Selector="Button.saveNotes">
+			<Setter Property="Background" Value="#2a0000"/>
+			<Setter Property="Foreground" Value="#e0e0e0"/>
+			<Setter Property="BorderBrush" Value="#5a0000"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Padding" Value="14,6"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="HorizontalAlignment" Value="Right"/>
+			<Setter Property="Margin" Value="0,6,0,0"/>
+		</Style>
+		<Style Selector="Button.saveNotes:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#3d0000"/>
+		</Style>
+		<Style Selector="Button.saveNotes:disabled /template/ ContentPresenter">
+			<Setter Property="Opacity" Value="0.4"/>
+		</Style>
+
+	</UserControl.Styles>
+
+	<Expander x:Name="NotesExpander"
+              IsExpanded="False"
+              Background="#111"
+              BorderBrush="#2a2a2a"
+              BorderThickness="0,1,0,0"
+              Padding="0">
+
+		<Expander.Header>
+			<TextBlock Classes="notesHeader" Text="NOTES" Margin="0,8,0,8"/>
+		</Expander.Header>
+
+		<Grid Margin="0,8,0,0" RowDefinitions="*,Auto">
+
+			<TabControl Grid.Row="0"
+                        Background="Transparent"
+                        BorderThickness="0">
+
+				<TabItem Header="BACKGROUND">
+					<TextBox x:Name="BackgroundBox"
+                             Classes="notes"
+                             Watermark="Who were they before the Embrace? Early unlife? Key memories?"/>
+				</TabItem>
+
+				<TabItem Header="GOALS">
+					<TextBox x:Name="GoalsBox"
+                             Classes="notes"
+                             Watermark="Ambitions, current hunts, personal agenda, long-term schemes..."/>
+				</TabItem>
+
+				<TabItem Header="COTERIE">
+					<TextBox x:Name="CoterieBox"
+                             Classes="notes"
+                             Watermark="Coterie members, allies, enemies, Sect ties, Sire..."/>
+				</TabItem>
+
+			</TabControl>
+
+			<!-- Save row -->
+			<StackPanel Grid.Row="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="12"
+                        Margin="0,6,0,10">
+				<TextBlock x:Name="SaveStatus"
+                           Foreground="#555"
+                           FontFamily="Consolas,Courier New,monospace"
+                           FontSize="11"
+                           VerticalAlignment="Center"/>
+				<Button Classes="saveNotes"
+                        x:Name="SaveBtn"
+                        Content="Save Notes"
+                        IsEnabled="False"
+                        Click="OnSave"/>
+			</StackPanel>
+
+		</Grid>
+
+	</Expander>
+
+</UserControl>

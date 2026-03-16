@@ -1,0 +1,103 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="VtmTool.UI.TraitsPanel">
+
+	<UserControl.Styles>
+
+		<Style Selector="TextBlock">
+			<Setter Property="Foreground" Value="#e0e0e0"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="12"/>
+		</Style>
+
+		<Style Selector="TextBlock.sectionHeader">
+			<Setter Property="Foreground" Value="#b00000"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="LetterSpacing" Value="2"/>
+			<Setter Property="Margin" Value="0,10,0,4"/>
+		</Style>
+
+		<Style Selector="TextBlock.expanderHeader">
+			<Setter Property="Foreground" Value="#b00000"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="LetterSpacing" Value="2"/>
+			<Setter Property="Margin" Value="0,8,0,8"/>
+		</Style>
+
+		<Style Selector="Button.traitAction">
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Padding" Value="4,2"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Foreground" Value="#555"/>
+		</Style>
+		<Style Selector="Button.traitAction:pointerover">
+			<Setter Property="Foreground" Value="#cc2200"/>
+		</Style>
+
+		<Style Selector="Button.addTrait">
+			<Setter Property="Background" Value="#1e1e1e"/>
+			<Setter Property="BorderBrush" Value="#2a2a2a"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Foreground" Value="#555"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Padding" Value="8,4"/>
+			<Setter Property="Cursor" Value="Hand"/>
+		</Style>
+		<Style Selector="Button.addTrait:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#2a2a2a"/>
+			<Setter Property="Foreground" Value="#aaa"/>
+		</Style>
+
+	</UserControl.Styles>
+
+	<Expander x:Name="TraitsExpander"
+              IsExpanded="False"
+              Background="#111"
+              BorderBrush="#2a2a2a"
+              BorderThickness="0,1,0,0"
+              Padding="0">
+
+		<Expander.Header>
+			<TextBlock Classes="expanderHeader" Text="BACKGROUNDS &amp; MERITS"/>
+		</Expander.Header>
+
+		<StackPanel Margin="0,6,0,12" Spacing="0">
+
+			<!-- Backgrounds -->
+			<TextBlock Classes="sectionHeader" Text="BACKGROUNDS"/>
+			<StackPanel x:Name="BackgroundList" Spacing="3"/>
+			<Button Classes="addTrait"
+                    Margin="0,6,0,0"
+                    Content="+ Add Background"
+                    Tag="0"
+                    Click="OnAddTrait"/>
+
+			<!-- Merits -->
+			<TextBlock Classes="sectionHeader" Text="MERITS"/>
+			<StackPanel x:Name="MeritList" Spacing="3"/>
+			<Button Classes="addTrait"
+                    Margin="0,6,0,0"
+                    Content="+ Add Merit"
+                    Tag="1"
+                    Click="OnAddTrait"/>
+
+			<!-- Flaws -->
+			<TextBlock Classes="sectionHeader" Text="FLAWS"/>
+			<StackPanel x:Name="FlawList" Spacing="3"/>
+			<Button Classes="addTrait"
+                    Margin="0,6,0,0"
+                    Content="+ Add Flaw"
+                    Tag="2"
+                    Click="OnAddTrait"/>
+
+		</StackPanel>
+
+	</Expander>
+
+</UserControl>
