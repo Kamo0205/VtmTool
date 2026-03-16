@@ -36,6 +36,8 @@ public static partial class Db
                 name                  TEXT    NOT NULL,
                 clan                  INTEGER NOT NULL,
                 generation            INTEGER NOT NULL,
+                predator_type         INTEGER NOT NULL DEFAULT 0,
+                specialties           TEXT    NOT NULL DEFAULT '',
                 blood_potency         INTEGER NOT NULL,
                 humanity              INTEGER NOT NULL,
                 strength              INTEGER NOT NULL,
@@ -78,15 +80,31 @@ public static partial class Db
                 superficial_health    INTEGER NOT NULL,
                 aggravated_willpower  INTEGER NOT NULL,
                 superficial_willpower INTEGER NOT NULL,
-                hunger                INTEGER NOT NULL
-            );
-
-            CREATE TABLE IF NOT EXISTS discipline (
-                id           INTEGER PRIMARY KEY,
-                character_id INTEGER NOT NULL REFERENCES character(id) ON DELETE CASCADE,
-                name         INTEGER NOT NULL,   -- DisciplineName enum, stored as byte
-                rating       INTEGER NOT NULL    -- 1–5
+                hunger                INTEGER NOT NULL,
+                notes_background      TEXT    NOT NULL DEFAULT '',
+                notes_goals           TEXT    NOT NULL DEFAULT '',
+                notes_coterie         TEXT    NOT NULL DEFAULT ''
             );";
+
+            //ALTER TABLE character ADD COLUMN IF NOT EXISTS notes_background TEXT NOT NULL DEFAULT '';
+            //ALTER TABLE character ADD COLUMN IF NOT EXISTS notes_goals TEXT NOT NULL DEFAULT '';
+            //ALTER TABLE character ADD COLUMN IF NOT EXISTS notes_coterie TEXT NOT NULL DEFAULT ''";
+
+    static void RunIfColumnMissing(string column, string alterSql)
+    {
+        using var conn = new SqliteConnection(ConnectionString);  // or ConnectionString
+        conn.Open();
+        using var check = conn.CreateCommand();
+        check.CommandText =
+            $"SELECT COUNT(*) FROM pragma_table_info('character') WHERE name='{column}';";
+        long count = (long)check.ExecuteScalar()!;
+        if (count == 0)
+        {
+            using var alter = conn.CreateCommand();
+            alter.CommandText = alterSql;
+            alter.ExecuteNonQuery();
+        }
+    }
 
     // Called once at startup. Creates the DB file and table if absent.
     public static void Init()
@@ -96,6 +114,22 @@ public static partial class Db
         using var cmd = conn.CreateCommand();
         cmd.CommandText = CreateTableSql;
         cmd.ExecuteNonQuery();
+        cmd.CommandText = CreateDisciplineTableSql;
+        cmd.ExecuteNonQuery();
+        cmd.CommandText = CreateXpAwardTableSql;
+        cmd.ExecuteNonQuery();
+        cmd.CommandText = CreateXpPurchaseTableSql;
+        cmd.ExecuteNonQuery();
+        cmd.CommandText = CreateTraitTableSql;
+        cmd.ExecuteNonQuery();
+        RunIfColumnMissing("notes_background",
+            "ALTER TABLE character ADD COLUMN notes_background TEXT NOT NULL DEFAULT ''");
+        RunIfColumnMissing("notes_goals",
+            "ALTER TABLE character ADD COLUMN notes_goals TEXT NOT NULL DEFAULT ''");
+        RunIfColumnMissing("notes_coterie",
+            "ALTER TABLE character ADD COLUMN notes_coterie TEXT NOT NULL DEFAULT ''");
+        RunIfColumnMissing("predator_type", "ALTER TABLE character ADD COLUMN predator_type INTEGER NOT NULL DEFAULT 0");
+        RunIfColumnMissing("specialties", "ALTER TABLE character ADD COLUMN specialties TEXT NOT NULL DEFAULT ''");
     }
 
     // Load every character from the DB. Called once at startup.
@@ -128,7 +162,7 @@ public static partial class Db
         {
             cmd.CommandText = @"
                     INSERT INTO character (
-                        name, clan, generation, blood_potency, humanity,
+                        name, clan, generation, blood_potency, predator_type, humanity,
                         strength, dexterity, stamina,
                         charisma, manipulation, composure,
                         intelligence, wits, resolve,
@@ -142,7 +176,7 @@ public static partial class Db
                         aggravated_willpower, superficial_willpower,
                         hunger
                     ) VALUES (
-                        $name, $clan, $generation, $blood_potency, $humanity,
+                        $name, $clan, $generation, $blood_potency, $predator_type, $humanity,
                         $strength, $dexterity, $stamina,
                         $charisma, $manipulation, $composure,
                         $intelligence, $wits, $resolve,
@@ -168,6 +202,7 @@ public static partial class Db
                         clan                  = $clan,
                         generation            = $generation,
                         blood_potency         = $blood_potency,
+                        predator_type         = $predator_type,
                         humanity              = $humanity,
                         strength              = $strength,
                         dexterity             = $dexterity,
@@ -238,6 +273,7 @@ public static partial class Db
         cmd.Parameters.AddWithValue("$clan", (byte)c.Clan);
         cmd.Parameters.AddWithValue("$generation", c.Generation);
         cmd.Parameters.AddWithValue("$blood_potency", c.BloodPotency);
+        cmd.Parameters.AddWithValue("$predator_type", c.PredatorType);
         cmd.Parameters.AddWithValue("$humanity", c.Humanity);
         cmd.Parameters.AddWithValue("$strength", c.Strength);
         cmd.Parameters.AddWithValue("$dexterity", c.Dexterity);
@@ -290,6 +326,7 @@ public static partial class Db
         Clan = (Clan)r.GetByte(r.GetOrdinal("clan")),
         Generation = r.GetByte(r.GetOrdinal("generation")),
         BloodPotency = r.GetByte(r.GetOrdinal("blood_potency")),
+        PredatorType = r.GetByte(r.GetOrdinal("predator_type")),
         Humanity = r.GetByte(r.GetOrdinal("humanity")),
         Strength = r.GetByte(r.GetOrdinal("strength")),
         Dexterity = r.GetByte(r.GetOrdinal("dexterity")),

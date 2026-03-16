@@ -107,4 +107,18 @@ public static partial class Rules
         c.AggravatedWillpower = (byte)Math.Max(c.AggravatedWillpower - amount, 0);
         return c;
     }
+
+    public static int XpCost(XpTraitType type, int toRating) => type switch
+    {
+        XpTraitType.Attribute => toRating * 5,
+        XpTraitType.Skill => toRating * 3,
+        XpTraitType.Specialty => 1,
+        XpTraitType.InClanDiscipline => toRating * 5,
+        XpTraitType.OutOfClanDiscipline => toRating * 7,
+        XpTraitType.BloodPotency => toRating * 10,
+        XpTraitType.Humanity => toRating * 3,
+        XpTraitType.Background => toRating * 3,
+        XpTraitType.Merit => toRating * 3,
+        _ => 0,
+    };
 }
