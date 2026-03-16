@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:VtmTool.UI"
         x:Class="VtmTool.UI.MainWindow"
         Title="VtM V5 — Character Tool"
-        Width="1100" Height="780"
-        MinWidth="800" MinHeight="600"
+        Width="1340" Height="800"
+        MinWidth="900" MinHeight="600"
         Background="#1a1a1a">
 
 	<Window.Styles>
@@ -95,11 +96,16 @@
 			<Setter Property="HorizontalAlignment" Value="Center"/>
 			<Setter Property="VerticalAlignment" Value="Center"/>
 		</Style>
+		<Style Selector="NumericUpDown /template/ TextBox">
+			<Setter Property="Foreground" Value="#e0e0e0"/>
+			<Setter Property="Background" Value="Transparent"/>
+		</Style>
 	</Window.Styles>
 
-	<Grid ColumnDefinitions="220,1,*">
+	<!-- Three columns: sidebar | sheet | roller -->
+	<Grid ColumnDefinitions="220,1,*,1,300">
 
-		<!-- LEFT SIDEBAR -->
+		<!-- ── LEFT SIDEBAR ─────────────────────────────────── -->
 		<DockPanel Grid.Column="0" Background="#111">
 			<Button Classes="primary"
                     DockPanel.Dock="Top"
@@ -108,28 +114,24 @@
 				+ New Character
 			</Button>
 			<Separator DockPanel.Dock="Top" Margin="10,4" Background="#2a2a2a" Height="1"/>
-			<ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto">
+			<ScrollViewer VerticalScrollBarVisibility="Auto">
 				<StackPanel x:Name="CharacterList" Spacing="1"/>
 			</ScrollViewer>
 		</DockPanel>
 
 		<Rectangle Grid.Column="1" Fill="#2a2a2a"/>
 
-		<!-- RIGHT PANEL -->
+		<!-- ── CHARACTER SHEET ──────────────────────────────── -->
 		<Grid Grid.Column="2">
 
 			<TextBlock x:Name="EmptyState"
                        Classes="placeholder"
                        Text="Select or create a character"/>
 
-			<DockPanel x:Name="SheetPanel"
-                       IsVisible="False"
-                       Margin="24,20,24,20">
+			<DockPanel x:Name="SheetPanel" IsVisible="False" Margin="24,20,24,20">
 
 				<!-- Action toolbar -->
-				<WrapPanel DockPanel.Dock="Bottom"
-                           Orientation="Horizontal"
-                           Margin="0,16,0,0">
+				<WrapPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,16,0,0">
 					<Button Classes="action" Margin="0,0,6,6" Click="OnRouse">Rouse Check</Button>
 					<Button Classes="action" Margin="0,0,6,6" Click="OnDamage">Apply Damage</Button>
 					<Button Classes="action" Margin="0,0,6,6" Click="OnHeal">Heal</Button>
@@ -139,16 +141,13 @@
 					<Button Classes="action" Margin="0,0,0,6" Click="OnDelete">Delete</Button>
 				</WrapPanel>
 
-				<!-- Sheet content -->
 				<ScrollViewer VerticalScrollBarVisibility="Auto">
 					<StackPanel Spacing="0">
 
-						<!-- Identity -->
 						<TextBlock x:Name="SheetName" Classes="charName"/>
 						<TextBlock x:Name="SheetSubtitle" Classes="subtitle"/>
 						<TextBlock x:Name="SheetBloodPotency" Classes="subtitle" Margin="0,2,0,0"/>
 
-						<!-- ATTRIBUTES -->
 						<TextBlock Classes="section" Text="ATTRIBUTES"/>
 						<Grid ColumnDefinitions="*,*,*">
 							<StackPanel Grid.Column="0" Spacing="3">
@@ -195,7 +194,6 @@
 							</StackPanel>
 						</Grid>
 
-						<!-- SKILLS -->
 						<TextBlock Classes="section" Text="SKILLS"/>
 						<Grid ColumnDefinitions="*,*,*">
 							<StackPanel Grid.Column="0" Spacing="3">
@@ -314,12 +312,9 @@
 							</StackPanel>
 						</Grid>
 
-						<!-- DISCIPLINES -->
 						<TextBlock Classes="section" Text="DISCIPLINES"/>
-						<!-- DisciplinePanel is rebuilt on every RefreshSheet call -->
 						<StackPanel x:Name="DisciplinePanel" Spacing="6"/>
 
-						<!-- HEALTH & WILLPOWER -->
 						<TextBlock Classes="section" Text="HEALTH &amp; WILLPOWER"/>
 						<StackPanel Spacing="6">
 							<StackPanel Orientation="Horizontal" Spacing="10">
@@ -333,11 +328,9 @@
 							</StackPanel>
 						</StackPanel>
 
-						<!-- HUNGER -->
 						<TextBlock Classes="section" Text="HUNGER"/>
 						<TextBlock x:Name="TrackHunger" Classes="hunger"/>
 
-						<!-- Status message -->
 						<TextBlock x:Name="StatusMsg"
                                    Foreground="#888"
                                    FontSize="12"
@@ -348,5 +341,11 @@
 				</ScrollViewer>
 			</DockPanel>
 		</Grid>
+
+		<Rectangle Grid.Column="3" Fill="#2a2a2a"/>
+
+		<!-- ── DICE ROLLER PANEL ─────────────────────────────── -->
+		<ui:DiceRollerPanel x:Name="Roller" Grid.Column="4"/>
+
 	</Grid>
 </Window>

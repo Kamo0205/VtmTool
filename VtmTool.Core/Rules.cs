@@ -3,7 +3,7 @@ using VtmTool.Core.Models;
 
 namespace VtmTool.Core;
 
-public static class Rules
+public static partial class Rules
 {
     // Generation caps Blood Potency maximum (V5 corebook p.216)
     public static byte MaxBloodPotency(byte generation) => generation switch

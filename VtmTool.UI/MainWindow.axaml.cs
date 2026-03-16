@@ -3,7 +3,6 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using VtmTool.Core;
 using VtmTool.Core.Enums;
 using VtmTool.Core.Models;
@@ -12,14 +11,23 @@ namespace VtmTool.UI;
 
 public partial class MainWindow : Window
 {
-    private readonly List<Character> _characters = new();
-    private readonly List<List<Discipline>> _disciplines = new();
+    // =========================================================================
+    // State — _disciplines indexed in parallel with _characters
+    // =========================================================================
+    readonly List<Character> _characters = new();
+    readonly List<List<Discipline>> _disciplines = new();
     int _selectedIdx = -1;
     readonly Random _rng = new();
 
+    DiceRollerPanel _roller = null!;
+
+    // =========================================================================
+    // Init
+    // =========================================================================
     public MainWindow()
     {
         InitializeComponent();
+        _roller = this.FindControl<DiceRollerPanel>("Roller")!;
         Db.Init();
 
         var chars = Db.LoadAll();
@@ -31,45 +39,38 @@ public partial class MainWindow : Window
             _disciplines.Add(discMap.TryGetValue(c.Id, out var d) ? d : new List<Discipline>());
         }
 
+        // Wire the willpower-spent event from the roller panel
+        Roller.WillpowerSpent += OnRollerWillpowerSpent;
+        _roller.WillpowerSpent += OnRollerWillpowerSpent;
         RebuildList();
     }
 
-    // Sidebase list
-    //Rebuild the character button list from _characters
-    private void RebuildList()
+    // =========================================================================
+    // Sidebar list
+    // =========================================================================
+    void RebuildList()
     {
         CharacterList.Children.Clear();
         for (int i = 0; i < _characters.Count; i++)
         {
-            int captured = i; // capture for lambda
-            var c = _characters[i];
-
+            int captured = i;
             var btn = new Button
             {
                 Classes = { "charItem" },
-                Content = BuildListItemContent(c),
-                Tag = i,
+                Content = BuildListItemContent(_characters[i]),
             };
-            if (i == _selectedIdx)
-                btn.Classes.Add("selected");
-
+            if (i == _selectedIdx) btn.Classes.Add("selected");
             btn.Click += (_, _) => SelectCharacter(captured);
             CharacterList.Children.Add(btn);
         }
 
-        if (_characters.Count == 0)
-            SelectCharacter(-1);
+        if (_characters.Count == 0) SelectCharacter(-1);
     }
 
     static StackPanel BuildListItemContent(in Character c)
     {
         var panel = new StackPanel { Spacing = 2 };
-        panel.Children.Add(new TextBlock
-        {
-            Text = c.Name,
-            Foreground = Brushes.White,
-            FontSize = 13,
-        });
+        panel.Children.Add(new TextBlock { Text = c.Name, Foreground = Brushes.White, FontSize = 13 });
         panel.Children.Add(new TextBlock
         {
             Text = $"{ClanName(c.Clan)}  ·  {c.Generation}th",
@@ -79,13 +80,13 @@ public partial class MainWindow : Window
         return panel;
     }
 
+    // =========================================================================
     // Sheet display
-
+    // =========================================================================
     void SelectCharacter(int idx)
     {
         _selectedIdx = idx;
 
-        // Update selected highlight on all buttons
         for (int i = 0; i < CharacterList.Children.Count; i++)
         {
             if (CharacterList.Children[i] is Button btn)
@@ -100,19 +101,22 @@ public partial class MainWindow : Window
         SheetPanel.IsVisible = hasChar;
 
         if (hasChar)
+        {
             RefreshSheet(_characters[idx], _disciplines[idx]);
+            _roller.SetCharacter(_characters[idx]);
+        }
+        else
+        {
+            _roller.ClearCharacter();
+        }
     }
 
-    // Redraw every named TextBlock from the current Character value.
-    // This is the immediate-mode render: data in → display out, no retained state.
     void RefreshSheet(in Character c, List<Discipline> disciplines)
     {
-        // Identity
         SheetName.Text = c.Name;
         SheetSubtitle.Text = $"{ClanName(c.Clan)}  ·  {c.Generation}th Generation  ·  Humanity {Dots(c.Humanity, 10)}";
         SheetBloodPotency.Text = $"Blood Potency {Dots(c.BloodPotency)}  (max {Rules.MaxBloodPotency(c.Generation)})";
 
-        // Attributes
         AttrStrength.Text = Dots(c.Strength);
         AttrDexterity.Text = Dots(c.Dexterity);
         AttrStamina.Text = Dots(c.Stamina);
@@ -123,7 +127,6 @@ public partial class MainWindow : Window
         AttrWits.Text = Dots(c.Wits);
         AttrResolve.Text = Dots(c.Resolve);
 
-        // Skills
         SkillAthletics.Text = Dots(c.Athletics);
         SkillBrawl.Text = Dots(c.Brawl);
         SkillCraft.Text = Dots(c.Craft);
@@ -152,19 +155,13 @@ public partial class MainWindow : Window
         SkillScience.Text = Dots(c.Science);
         SkillTechnology.Text = Dots(c.Technology);
 
-        // Health & Willpower
         TrackHealth.Text = DamageTrack(c.AggravatedHealth, c.SuperficialHealth, c.HealthMax);
         TrackWillpower.Text = DamageTrack(c.AggravatedWillpower, c.SuperficialWillpower, c.WillpowerMax);
-
         int wp = Rules.WoundPenalty(c);
         WoundPenalty.Text = wp < 0 ? $"  wound {wp}" : "";
-
-        // Hunger
         TrackHunger.Text = HungerTrack(c.Hunger) + $"  {c.Hunger}/5";
 
-        // Disciplines — panel is cleared and rebuilt every render.
-        // This is the same immediate-mode principle as the rest of the sheet:
-        // the panel has no memory of what it showed last frame.
+        // Disciplines
         DisciplinePanel.Children.Clear();
         if (disciplines.Count == 0)
         {
@@ -177,14 +174,10 @@ public partial class MainWindow : Window
         }
         else
         {
-            // Lay out disciplines in a three-column grid regardless of count.
-            // At creation there are always 1–3; "Edit Disciplines" can produce more
-            // if we ever allow out-of-clan disciplines in a future version.
             var grid = new Grid();
             grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
             grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
             grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
-
             int rowCount = (disciplines.Count + 2) / 3;
             for (int r = 0; r < rowCount; r++)
                 grid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
@@ -192,11 +185,7 @@ public partial class MainWindow : Window
             for (int i = 0; i < disciplines.Count; i++)
             {
                 var d = disciplines[i];
-                var cell = new StackPanel
-                {
-                    Spacing = 2,
-                    Margin = new Avalonia.Thickness(0, 0, 16, 8),
-                };
+                var cell = new StackPanel { Spacing = 2, Margin = new Avalonia.Thickness(0, 0, 16, 8) };
                 cell.Children.Add(new TextBlock
                 {
                     Text = ClanDisciplines.DisplayName(d.Name),
@@ -209,47 +198,55 @@ public partial class MainWindow : Window
                     Foreground = new SolidColorBrush(Color.Parse("#cc2200")),
                     FontSize = 13,
                 });
-
                 Grid.SetColumn(cell, i % 3);
                 Grid.SetRow(cell, i / 3);
                 grid.Children.Add(cell);
             }
-
             DisciplinePanel.Children.Add(grid);
         }
     }
 
+    // =========================================================================
     // Mutation helpers
-
-    // Write mutated character back to list and DB, then redraw.
+    // =========================================================================
     void Commit(Character updated)
     {
         _characters[_selectedIdx] = updated;
         Db.SaveCharacter(updated);
-
-        // Rebuild list button text in case name changed
         if (CharacterList.Children[_selectedIdx] is Button btn)
             btn.Content = BuildListItemContent(updated);
-
         RefreshSheet(updated, _disciplines[_selectedIdx]);
+
+        // Keep roller in sync — wound penalty may have changed
+        _roller.RefreshCharacter(updated);
     }
 
     void SetStatus(string msg) => StatusMsg.Text = msg;
 
-    // Button handlers
+    // =========================================================================
+    // Willpower spent event from roller
+    // Applies 1 superficial willpower damage and persists.
+    // =========================================================================
+    void OnRollerWillpowerSpent(object? sender, EventArgs e)
+    {
+        if (_selectedIdx < 0) return;
+        var c = Rules.ApplySuperficialWillpower(_characters[_selectedIdx], 1);
+        Commit(c);
+        SetStatus("Willpower spent (1 superficial).");
+    }
 
+    // =========================================================================
+    // Button handlers
+    // =========================================================================
     async void OnNewCharacter(object? sender, RoutedEventArgs e)
     {
-        // Creation wizard is a separate dialog — opens synchronously for now
-        // and returns the created character.
-        
         var wizard = new CreationWizard(0);
         await wizard.ShowDialog(this);
+
         if (wizard.Result is Character created)
         {
             var saved = Db.SaveCharacter(created);
             var disciplines = Db.ReplaceAllDisciplines(saved.Id, wizard.PendingDisciplines);
-
             _characters.Add(saved);
             _disciplines.Add(disciplines);
             RebuildList();
@@ -272,29 +269,24 @@ public partial class MainWindow : Window
         string result = success
             ? $"Rouse — rolled {roll}: Success. Hunger unchanged ({c.Hunger})."
             : $"Rouse — rolled {roll}: Failure. Hunger {prev} → {c.Hunger}.";
-
-        if (c.Hunger == 5)
-            result += "  ⚠ Hunger 5 — Frenzy check required!";
-
+        if (c.Hunger == 5) result += "  ⚠ Hunger 5 — Frenzy check required!";
         SetStatus(result);
     }
 
     async void OnDamage(object? sender, RoutedEventArgs e)
     {
         if (_selectedIdx < 0) return;
-        var dialog = new DamageDialog(mode: DamageDialogMode.Apply);
+        var dialog = new DamageDialog(DamageDialogMode.Apply);
         await dialog.ShowDialog(this);
-        if (dialog.Confirmed)
-            ApplyDamageResult(dialog.Track, dialog.DamageType, dialog.Amount);
+        if (dialog.Confirmed) ApplyDamageResult(dialog.Track, dialog.DamageType, dialog.Amount);
     }
 
     async void OnHeal(object? sender, RoutedEventArgs e)
     {
         if (_selectedIdx < 0) return;
-        var dialog = new DamageDialog(mode: DamageDialogMode.Heal);
+        var dialog = new DamageDialog(DamageDialogMode.Heal);
         await dialog.ShowDialog(this);
-        if (dialog.Confirmed)
-            ApplyDamageResult(dialog.Track, dialog.DamageType, dialog.Amount);
+        if (dialog.Confirmed) ApplyDamageResult(dialog.Track, dialog.DamageType, dialog.Amount);
     }
 
     void ApplyDamageResult(string track, string type, int amount)
@@ -313,7 +305,7 @@ public partial class MainWindow : Window
             _ => c
         };
         Commit(c);
-        SetStatus($"Damage updated.");
+        SetStatus("Damage updated.");
     }
 
     async void OnEditAttr(object? sender, RoutedEventArgs e)
@@ -338,9 +330,6 @@ public partial class MainWindow : Window
         var wizard = new CreationWizard(startStep: 5);
         wizard.SeedClan(_characters[_selectedIdx].Clan);
         await wizard.ShowDialog(this);
-
-        // wizard.Result will be null if the wizard was cancelled before Finish().
-        // For the discipline-only edit we only care about PendingDisciplines.
         if (wizard.PendingDisciplines.Count > 0)
         {
             var updated = _characters[_selectedIdx];
@@ -355,11 +344,10 @@ public partial class MainWindow : Window
     {
         if (_selectedIdx < 0) return;
         var c = _characters[_selectedIdx];
-        
         var confirm = new ConfirmDialog($"Delete '{c.Name}'?");
         await confirm.ShowDialog(this);
         if (!confirm.Confirmed) return;
-        
+
         Db.DeleteCharacter(c.Id);
         _characters.RemoveAt(_selectedIdx);
         _disciplines.RemoveAt(_selectedIdx);
@@ -369,8 +357,9 @@ public partial class MainWindow : Window
         SetStatus($"'{c.Name}' deleted.");
     }
 
-    // Rendering helpers — same logic as Print.cs, now returning strings
-
+    // =========================================================================
+    // Rendering helpers
+    // =========================================================================
     static string Dots(byte value, byte max = 5) =>
         new string('\u25CF', Math.Min(value, max)) +
         new string('\u25CB', Math.Max(max - value, 0));
