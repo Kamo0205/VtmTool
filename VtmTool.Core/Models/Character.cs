@@ -19,6 +19,7 @@ public struct Character
     public byte Generation; // 4-16
     public byte BloodPotency; // 0-10, capped by Generation
     public byte Humanity; // 0–10, starts at 7
+    public byte PredatorType;
 
     // Attributes
     public byte Strength, Dexterity, Stamina; // Physical Attributes
