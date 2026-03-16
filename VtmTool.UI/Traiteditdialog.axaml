@@ -2,73 +2,82 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="VtmTool.UI.TraitEditDialog"
         Title="Trait"
-        Width="400" Height="280"
+        Width="400" Height="290"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Background="#1a1a1a"
+        Background="#161616"
         Foreground="#e0e0e0"
         FontFamily="Consolas,Courier New,monospace">
 
 	<Window.Styles>
-		<Style Selector="TextBlock.lbl">
-			<Setter Property="Foreground" Value="#aaa"/>
-			<Setter Property="FontSize" Value="11"/>
-			<Setter Property="Margin" Value="0,8,0,2"/>
+		<Style Selector="TextBlock.fieldLabel">
+			<Setter Property="Foreground" Value="#444"/>
+			<Setter Property="FontSize" Value="9"/>
+			<Setter Property="LetterSpacing" Value="2"/>
+			<Setter Property="Margin" Value="0,10,0,3"/>
 		</Style>
 		<Style Selector="ComboBox">
-			<Setter Property="Background" Value="#222"/>
+			<Setter Property="Background" Value="#0e0e0e"/>
 			<Setter Property="Foreground" Value="#e0e0e0"/>
-			<Setter Property="BorderBrush" Value="#444"/>
+			<Setter Property="BorderBrush" Value="#2a2a2a"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
 			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="CornerRadius" Value="4"/>
 		</Style>
 		<Style Selector="TextBox">
-			<Setter Property="Background" Value="#222"/>
+			<Setter Property="Background" Value="#0e0e0e"/>
 			<Setter Property="Foreground" Value="#e0e0e0"/>
-			<Setter Property="BorderBrush" Value="#444"/>
+			<Setter Property="BorderBrush" Value="#2a2a2a"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
 			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="CornerRadius" Value="4"/>
 		</Style>
 	</Window.Styles>
 
-	<StackPanel Margin="24" Spacing="0">
+	<Border BorderBrush="#1a5a55" BorderThickness="0,2,0,0">
+		<StackPanel Margin="24,16,24,20" Spacing="0">
 
-		<!-- Name -->
-		<TextBlock Classes="lbl" Text="Name"/>
-		<ComboBox x:Name="NameBox"
-                  HorizontalAlignment="Stretch"
-                  IsEditable="True"/>
+			<TextBlock Classes="fieldLabel" Text="NAME"/>
+			<ComboBox x:Name="NameBox"
+                      HorizontalAlignment="Stretch"
+                      IsEditable="True"/>
 
-		<!-- Rating -->
-		<TextBlock Classes="lbl" Text="Rating (0 = unrated)"/>
-		<StackPanel x:Name="RatingPicker"
-                    Orientation="Horizontal"
-                    Spacing="4"/>
+			<TextBlock Classes="fieldLabel" Text="RATING"/>
+			<StackPanel x:Name="RatingPicker"
+                        Orientation="Horizontal"
+                        Spacing="4"/>
 
-		<!-- Detail -->
-		<TextBlock Classes="lbl" Text="Detail (optional)"/>
-		<TextBox x:Name="DetailBox"
-                 Watermark="e.g. Warehouse in the Docks"
-                 HorizontalAlignment="Stretch"/>
+			<TextBlock Classes="fieldLabel" Text="DETAIL  (optional)"/>
+			<TextBox x:Name="DetailBox"
+                     HorizontalAlignment="Stretch"
+                     Watermark="e.g. Warehouse in the Docks"/>
 
-		<!-- Buttons -->
-		<StackPanel Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Spacing="10"
-                    Margin="0,16,0,0">
-			<Button Content="Cancel"
-                    Background="#2a2a2a"
-                    Foreground="#e0e0e0"
-                    BorderBrush="#444"
-                    Padding="14,7"
-                    Click="OnCancel"/>
-			<Button Content="Save"
-                    Background="#5a0000"
-                    Foreground="#fff"
-                    BorderBrush="#900000"
-                    Padding="14,7"
-                    Click="OnSave"/>
+			<StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,18,0,0">
+
+				<Button Content="Cancel"
+                        Background="#1e1e1e"
+                        Foreground="#888"
+                        BorderBrush="#2a2a2a"
+                        BorderThickness="1"
+                        Padding="16,8"
+                        CornerRadius="4"
+                        Click="OnCancel"/>
+
+				<Button Content="Save"
+                        Background="#1a5a55"
+                        Foreground="#fff"
+                        BorderBrush="#226660"
+                        BorderThickness="1"
+                        Padding="16,8"
+                        CornerRadius="4"
+                        Click="OnSave"/>
+
+			</StackPanel>
+
 		</StackPanel>
+	</Border>
 
-	</StackPanel>
 </Window>

@@ -1,31 +1,24 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="VtmTool.UI.TraitsPanel">
+             x:Class="VtmTool.UI.TraitsPanel"
+             Background="#0f0f0f">
 
 	<UserControl.Styles>
 
 		<Style Selector="TextBlock">
-			<Setter Property="Foreground" Value="#e0e0e0"/>
+			<Setter Property="Foreground" Value="#c0c0c0"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
 			<Setter Property="FontSize" Value="12"/>
 		</Style>
 
-		<Style Selector="TextBlock.sectionHeader">
-			<Setter Property="Foreground" Value="#b00000"/>
-			<Setter Property="FontSize" Value="11"/>
-			<Setter Property="FontWeight" Value="Bold"/>
+		<Style Selector="TextBlock.traitSectionLabel">
+			<Setter Property="FontSize" Value="9"/>
+			<Setter Property="Foreground" Value="#444"/>
 			<Setter Property="LetterSpacing" Value="2"/>
-			<Setter Property="Margin" Value="0,10,0,4"/>
+			<Setter Property="Margin" Value="0,12,0,4"/>
 		</Style>
 
-		<Style Selector="TextBlock.expanderHeader">
-			<Setter Property="Foreground" Value="#b00000"/>
-			<Setter Property="FontSize" Value="11"/>
-			<Setter Property="FontWeight" Value="Bold"/>
-			<Setter Property="LetterSpacing" Value="2"/>
-			<Setter Property="Margin" Value="0,8,0,8"/>
-		</Style>
-
+		<!-- Invisible-border icon buttons -->
 		<Style Selector="Button.traitAction">
 			<Setter Property="Background" Value="Transparent"/>
 			<Setter Property="BorderThickness" Value="0"/>
@@ -33,66 +26,82 @@
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
 			<Setter Property="FontSize" Value="11"/>
 			<Setter Property="Cursor" Value="Hand"/>
-			<Setter Property="Foreground" Value="#555"/>
+			<Setter Property="Foreground" Value="#333"/>
 		</Style>
 		<Style Selector="Button.traitAction:pointerover">
-			<Setter Property="Foreground" Value="#cc2200"/>
+			<Setter Property="Foreground" Value="#c00000"/>
 		</Style>
 
+		<!-- Add trait button — dashed-feel -->
 		<Style Selector="Button.addTrait">
-			<Setter Property="Background" Value="#1e1e1e"/>
-			<Setter Property="BorderBrush" Value="#2a2a2a"/>
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="BorderBrush" Value="#252525"/>
 			<Setter Property="BorderThickness" Value="1"/>
-			<Setter Property="Foreground" Value="#555"/>
+			<Setter Property="Foreground" Value="#444"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
-			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontSize" Value="10"/>
 			<Setter Property="Padding" Value="8,4"/>
 			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="CornerRadius" Value="3"/>
+			<!--<Setter Property="LetterSpacing" Value="1"/>-->
 		</Style>
 		<Style Selector="Button.addTrait:pointerover /template/ ContentPresenter">
-			<Setter Property="Background" Value="#2a2a2a"/>
-			<Setter Property="Foreground" Value="#aaa"/>
+			<Setter Property="Background" Value="#141414"/>
+			<Setter Property="Foreground" Value="#888"/>
 		</Style>
 
 	</UserControl.Styles>
 
 	<Expander x:Name="TraitsExpander"
               IsExpanded="False"
-              Background="#111"
-              BorderBrush="#2a2a2a"
+              Background="Transparent"
+              BorderBrush="#1e1e1e"
               BorderThickness="0,1,0,0"
               Padding="0">
 
 		<Expander.Header>
-			<TextBlock Classes="expanderHeader" Text="BACKGROUNDS &amp; MERITS"/>
+			<StackPanel Orientation="Horizontal" Spacing="10" Margin="28,0,0,0">
+				<!-- Teal accent — distinct from Notes (red) and XP (amber) -->
+				<Border Width="3" Height="14"
+                        Background="#1a5a55"
+                        VerticalAlignment="Center"
+                        CornerRadius="1"/>
+				<TextBlock Text="BACKGROUNDS &amp; MERITS"
+                           FontSize="10"
+                           FontWeight="Bold"
+                           Foreground="#888"
+                           LetterSpacing="3"
+                           VerticalAlignment="Center"
+                           Margin="0,10,0,10"/>
+			</StackPanel>
 		</Expander.Header>
 
-		<StackPanel Margin="0,6,0,12" Spacing="0">
+		<StackPanel Margin="28,6,28,16" Spacing="0">
 
 			<!-- Backgrounds -->
-			<TextBlock Classes="sectionHeader" Text="BACKGROUNDS"/>
+			<TextBlock Classes="traitSectionLabel" Text="BACKGROUNDS"/>
 			<StackPanel x:Name="BackgroundList" Spacing="3"/>
 			<Button Classes="addTrait"
                     Margin="0,6,0,0"
-                    Content="+ Add Background"
+                    Content="+ BACKGROUND"
                     Tag="0"
                     Click="OnAddTrait"/>
 
 			<!-- Merits -->
-			<TextBlock Classes="sectionHeader" Text="MERITS"/>
+			<TextBlock Classes="traitSectionLabel" Text="MERITS"/>
 			<StackPanel x:Name="MeritList" Spacing="3"/>
 			<Button Classes="addTrait"
                     Margin="0,6,0,0"
-                    Content="+ Add Merit"
+                    Content="+ MERIT"
                     Tag="1"
                     Click="OnAddTrait"/>
 
 			<!-- Flaws -->
-			<TextBlock Classes="sectionHeader" Text="FLAWS"/>
+			<TextBlock Classes="traitSectionLabel" Text="FLAWS"/>
 			<StackPanel x:Name="FlawList" Spacing="3"/>
 			<Button Classes="addTrait"
                     Margin="0,6,0,0"
-                    Content="+ Add Flaw"
+                    Content="+ FLAW"
                     Tag="2"
                     Click="OnAddTrait"/>
 

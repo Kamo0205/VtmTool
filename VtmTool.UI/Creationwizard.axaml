@@ -1,35 +1,93 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="640"
         x:Class="VtmTool.UI.CreationWizard"
         Title="New Character"
-		WindowStartupLocation="CenterOwner"
-        Background="#1a1a1a"
+        Width="560" Height="660"
+        WindowStartupLocation="CenterOwner"
+        Background="#141414"
         Foreground="#e0e0e0"
         FontFamily="Consolas,Courier New,monospace">
-	<!-- Step content is swapped in code-behind as the player progresses.
-         This file is intentionally minimal — the wizard builds its own
-         content programmatically per step rather than declaring all steps
-         in AXAML and toggling visibility. -->
-	<DockPanel Margin="24">
-		<!-- Step indicator -->
-		<StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,16">
-			<TextBlock x:Name="StepTitle" FontSize="16" FontWeight="Bold" Foreground="#cc2200"/>
-			<TextBlock x:Name="StepHint" FontSize="11" Foreground="#666"/>
-		</StackPanel>
 
-		<!-- Navigation buttons -->
-		<StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,16,0,0">
-			<Button x:Name="BackBtn" Content="Back" Background="#2a2a2a" Foreground="#e0e0e0" BorderBrush="#444" Padding="14,7" IsEnabled="False" Click="OnBack"/>
-			<Button x:Name="NextBtn" Content="Next" Background="#5a0000" Foreground="#fff" BorderBrush="#900000" Padding="14,7" Click="OnNext"/>
-			<Button Content="Cancel" Background="#2a2a2a" Foreground="#e0e0e0" BorderBrush="#444" Padding="14,7" Click="OnCancel"/>
-		</StackPanel>
+	<Window.Styles>
+		<Style Selector="TextBlock">
+			<Setter Property="Foreground" Value="#c0c0c0"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="12"/>
+		</Style>
+	</Window.Styles>
 
-		<!-- Step content area — replaced per step -->
-		<ScrollViewer VerticalScrollBarVisibility="Auto">
-			<StackPanel x:Name="StepContent" Spacing="12"/>
+	<Grid RowDefinitions="Auto,*,Auto">
+
+		<!-- Step header -->
+		<Border Grid.Row="0"
+                Background="#0e0e0e"
+                BorderBrush="#1e1e1e"
+                BorderThickness="0,0,0,1"
+                Padding="28,18,28,16">
+			<StackPanel Spacing="4">
+				<TextBlock x:Name="StepTitle"
+                           FontSize="15"
+                           FontWeight="Bold"
+                           Foreground="#c00000"
+                           LetterSpacing="1"/>
+				<TextBlock x:Name="StepHint"
+                           FontSize="11"
+                           Foreground="#555"/>
+			</StackPanel>
+		</Border>
+
+		<!-- Step content -->
+		<ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      Margin="0">
+			<StackPanel x:Name="StepContent"
+                        Spacing="4"
+                        Margin="28,16,28,16"/>
 		</ScrollViewer>
-	</DockPanel>
+
+		<!-- Navigation -->
+		<Border Grid.Row="2"
+                Background="#0e0e0e"
+                BorderBrush="#1e1e1e"
+                BorderThickness="0,1,0,0"
+                Padding="28,14,28,14">
+			<StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8">
+
+				<Button x:Name="BackBtn"
+                        Content="Back"
+                        Background="#1e1e1e"
+                        Foreground="#666"
+                        BorderBrush="#2a2a2a"
+                        BorderThickness="1"
+                        Padding="16,8"
+                        CornerRadius="4"
+                        IsEnabled="False"
+                        Click="OnBack"/>
+
+				<Button x:Name="NextBtn"
+                        Content="Next"
+                        Background="#5a0000"
+                        Foreground="#fff"
+                        BorderBrush="#7a0000"
+                        BorderThickness="1"
+                        Padding="16,8"
+                        CornerRadius="4"
+                        Click="OnNext"/>
+
+				<Button Content="Cancel"
+                        Background="#1e1e1e"
+                        Foreground="#666"
+                        BorderBrush="#2a2a2a"
+                        BorderThickness="1"
+                        Padding="16,8"
+                        CornerRadius="4"
+                        Click="OnCancel"/>
+
+			</StackPanel>
+		</Border>
+
+	</Grid>
+
 </Window>

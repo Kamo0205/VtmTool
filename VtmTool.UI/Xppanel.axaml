@@ -1,122 +1,144 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="VtmTool.UI.XpPanel">
+             x:Class="VtmTool.UI.XpPanel"
+             Background="#0f0f0f">
 
 	<UserControl.Styles>
 
 		<Style Selector="TextBlock">
-			<Setter Property="Foreground" Value="#e0e0e0"/>
+			<Setter Property="Foreground" Value="#c0c0c0"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
 			<Setter Property="FontSize" Value="12"/>
 		</Style>
 
-		<Style Selector="TextBlock.xpHeader">
-			<Setter Property="Foreground" Value="#b00000"/>
-			<Setter Property="FontSize" Value="11"/>
-			<Setter Property="FontWeight" Value="Bold"/>
+		<Style Selector="TextBlock.xpSub">
+			<Setter Property="FontSize" Value="9"/>
+			<Setter Property="Foreground" Value="#444"/>
 			<Setter Property="LetterSpacing" Value="2"/>
 		</Style>
 
-		<Style Selector="TextBlock.xpTotal">
-			<Setter Property="FontSize" Value="22"/>
+		<Style Selector="TextBlock.xpBig">
+			<Setter Property="FontSize" Value="24"/>
 			<Setter Property="FontWeight" Value="Bold"/>
 			<Setter Property="Foreground" Value="#ffffff"/>
 		</Style>
 
-		<Style Selector="TextBlock.xpSub">
-			<Setter Property="FontSize" Value="11"/>
-			<Setter Property="Foreground" Value="#666"/>
+		<Style Selector="TextBlock.xpBigMuted">
+			<Setter Property="FontSize" Value="24"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="#444"/>
 		</Style>
 
-		<Style Selector="Button.xpAction">
-			<Setter Property="Background" Value="#2a0000"/>
-			<Setter Property="Foreground" Value="#e0e0e0"/>
-			<Setter Property="BorderBrush" Value="#5a0000"/>
-			<Setter Property="BorderThickness" Value="1"/>
-			<Setter Property="Padding" Value="10,5"/>
-			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
-			<Setter Property="FontSize" Value="11"/>
-			<Setter Property="Cursor" Value="Hand"/>
-		</Style>
-		<Style Selector="Button.xpAction:pointerover /template/ ContentPresenter">
-			<Setter Property="Background" Value="#3d0000"/>
+		<Style Selector="TextBlock.sectionLabel">
+			<Setter Property="FontSize" Value="9"/>
+			<Setter Property="Foreground" Value="#555"/>
+			<Setter Property="LetterSpacing" Value="2"/>
+			<Setter Property="Margin" Value="0,12,0,4"/>
 		</Style>
 
 		<Style Selector="TextBox.xpInput">
-			<Setter Property="Background" Value="#222"/>
-			<Setter Property="Foreground" Value="#e0e0e0"/>
-			<Setter Property="BorderBrush" Value="#444"/>
+			<Setter Property="Background" Value="#0a0a0a"/>
+			<Setter Property="Foreground" Value="#c0c0c0"/>
+			<Setter Property="BorderBrush" Value="#222"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
 			<Setter Property="FontSize" Value="12"/>
-			<Setter Property="Padding" Value="6,4"/>
+			<Setter Property="Padding" Value="8,6"/>
+			<Setter Property="CornerRadius" Value="3"/>
+		</Style>
+
+		<Style Selector="Button.xpAction">
+			<Setter Property="Background" Value="#1e1e1e"/>
+			<Setter Property="Foreground" Value="#888"/>
+			<Setter Property="BorderBrush" Value="#333"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Padding" Value="12,7"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="CornerRadius" Value="4"/>
+		</Style>
+		<Style Selector="Button.xpAction:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#2a1a00"/>
+			<Setter Property="Foreground" Value="#e0e0e0"/>
 		</Style>
 
 	</UserControl.Styles>
 
 	<Expander x:Name="XpExpander"
               IsExpanded="False"
-              Background="#111"
-              BorderBrush="#2a2a2a"
+              Background="Transparent"
+              BorderBrush="#1e1e1e"
               BorderThickness="0,1,0,0"
               Padding="0">
 
 		<Expander.Header>
-			<TextBlock Classes="xpHeader" Text="EXPERIENCE" Margin="0,8,0,8"/>
+			<StackPanel Orientation="Horizontal" Spacing="10" Margin="28,0,0,0">
+				<!-- Amber accent — distinct from Notes (red) and Traits (teal) -->
+				<Border Width="3" Height="14"
+                        Background="#8a5500"
+                        VerticalAlignment="Center"
+                        CornerRadius="1"/>
+				<TextBlock Text="EXPERIENCE"
+                           FontSize="10"
+                           FontWeight="Bold"
+                           Foreground="#888"
+                           LetterSpacing="3"
+                           VerticalAlignment="Center"
+                           Margin="0,10,0,10"/>
+			</StackPanel>
 		</Expander.Header>
 
-		<StackPanel Margin="0,10,0,10" Spacing="12">
+		<StackPanel Margin="28,10,28,16" Spacing="0">
 
-			<!-- XP Summary -->
-			<Grid ColumnDefinitions="*,*,*">
-				<StackPanel Grid.Column="0">
+			<!-- XP summary row -->
+			<Grid ColumnDefinitions="*,1,*,1,*">
+
+				<StackPanel Grid.Column="0" Spacing="2">
 					<TextBlock Classes="xpSub" Text="AVAILABLE"/>
-					<TextBlock x:Name="AvailableLabel" Classes="xpTotal"/>
+					<TextBlock x:Name="AvailableLabel" Classes="xpBig"/>
 				</StackPanel>
-				<StackPanel Grid.Column="1">
+
+				<Rectangle Grid.Column="1" Fill="#1e1e1e"/>
+
+				<StackPanel Grid.Column="2" Spacing="2" Margin="16,0,0,0">
 					<TextBlock Classes="xpSub" Text="EARNED"/>
-					<TextBlock x:Name="EarnedLabel" Classes="xpTotal" Foreground="#888"/>
+					<TextBlock x:Name="EarnedLabel" Classes="xpBigMuted"/>
 				</StackPanel>
-				<StackPanel Grid.Column="2">
+
+				<Rectangle Grid.Column="3" Fill="#1e1e1e"/>
+
+				<StackPanel Grid.Column="4" Spacing="2" Margin="16,0,0,0">
 					<TextBlock Classes="xpSub" Text="SPENT"/>
-					<TextBlock x:Name="SpentLabel" Classes="xpTotal" Foreground="#888"/>
+					<TextBlock x:Name="SpentLabel" Classes="xpBigMuted"/>
 				</StackPanel>
+
 			</Grid>
 
-			<!-- Award XP row -->
-			<StackPanel Spacing="6">
-				<TextBlock Classes="xpHeader" Text="AWARD XP"/>
-				<Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto">
+			<!-- Award XP -->
+			<TextBlock Classes="sectionLabel" Text="AWARD XP"/>
+			<Grid ColumnDefinitions="80,*,Auto" RowDefinitions="Auto" >
+				<TextBox x:Name="AwardAmountBox"
+                         Grid.Column="0"
+                         Classes="xpInput"
+                         Watermark="Amount"
+                         Margin="0,0,8,0"/>
+				<TextBox x:Name="AwardNoteBox"
+                         Grid.Column="1"
+                         Classes="xpInput"
+                         Watermark="Note  (e.g. Session 4)"
+                         Margin="0,0,8,0"/>
+				<Button Grid.Column="2"
+                        Classes="xpAction"
+                        Content="Award"
+                        VerticalAlignment="Center"
+                        Click="OnAward"/>
+			</Grid>
 
-					<TextBox x:Name="AwardAmountBox"
-                             Grid.Column="0"
-                             Classes="xpInput"
-                             Watermark="Amount"
-                             Width="80"
-                             HorizontalAlignment="Left"/>
-
-					<TextBox x:Name="AwardNoteBox"
-                             Grid.Row="1" Grid.Column="0"
-                             Classes="xpInput"
-                             Watermark="Note (optional, e.g. Session 4)"
-                             Margin="0,4,0,0"/>
-
-					<Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
-                            Classes="xpAction"
-                            Content="Award"
-                            Margin="8,0,0,0"
-                            VerticalAlignment="Center"
-                            Click="OnAward"/>
-				</Grid>
-			</StackPanel>
-
-			<!-- History log -->
-			<StackPanel Spacing="4">
-				<TextBlock Classes="xpHeader" Text="HISTORY"/>
-				<ScrollViewer MaxHeight="200"
-                              VerticalScrollBarVisibility="Auto">
-					<StackPanel x:Name="HistoryList" Spacing="2"/>
-				</ScrollViewer>
-			</StackPanel>
+			<!-- History -->
+			<TextBlock Classes="sectionLabel" Text="HISTORY"/>
+			<ScrollViewer MaxHeight="180" VerticalScrollBarVisibility="Auto">
+				<StackPanel x:Name="HistoryList" Spacing="3"/>
+			</ScrollViewer>
 
 		</StackPanel>
 

@@ -511,7 +511,7 @@ public partial class MainWindow : Window
     async void OnEditAttr(object? sender, RoutedEventArgs e)
     {
         if (_selectedIdx < 0) return;
-        var wizard = new CreationWizard(startStep: 1);
+        var wizard = new CreationWizard(startStep: 2);
         await wizard.ShowDialog(this);
         if (wizard.Result is Character updated) { Commit(updated); SetStatus("Attributes updated."); }
     }
@@ -519,7 +519,7 @@ public partial class MainWindow : Window
     async void OnEditSkills(object? sender, RoutedEventArgs e)
     {
         if (_selectedIdx < 0) return;
-        var wizard = new CreationWizard(startStep: 3);
+        var wizard = new CreationWizard(startStep: 4);
         await wizard.ShowDialog(this);
         if (wizard.Result is Character updated) { Commit(updated); SetStatus("Skills updated."); }
     }
@@ -527,7 +527,7 @@ public partial class MainWindow : Window
     async void OnEditDisciplines(object? sender, RoutedEventArgs e)
     {
         if (_selectedIdx < 0) return;
-        var wizard = new CreationWizard(startStep: 5);
+        var wizard = new CreationWizard(startStep: 6);
         wizard.SeedClan(_characters[_selectedIdx].Clan);
         await wizard.ShowDialog(this);
         if (wizard.PendingDisciplines.Count > 0)

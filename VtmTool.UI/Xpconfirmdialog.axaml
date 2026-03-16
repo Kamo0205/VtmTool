@@ -1,63 +1,90 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         x:Class="VtmTool.UI.XpConfirmDialog"
         Title="Spend XP"
-        Width="340" Height="200"
+        Width="340" Height="210"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Background="#1a1a1a"
+        Background="#161616"
         Foreground="#e0e0e0"
         FontFamily="Consolas,Courier New,monospace">
-	<StackPanel Margin="24" Spacing="12">
 
-		<!-- Trait being raised -->
-		<TextBlock x:Name="TraitLabel"
-                   FontSize="15"
-                   FontWeight="Bold"
-                   Foreground="#ffffff"
-                   TextWrapping="Wrap"/>
+	<Border BorderBrush="#8a5500" BorderThickness="0,2,0,0">
+		<StackPanel Margin="24,16,24,20" Spacing="14">
 
-		<!-- Cost and availability -->
-		<StackPanel Spacing="4">
-			<StackPanel Orientation="Horizontal" Spacing="8">
-				<TextBlock Text="Cost:" Foreground="#666" FontSize="12" Width="80"/>
-				<TextBlock x:Name="CostLabel" Foreground="#cc2200" FontSize="12" FontWeight="Bold"/>
+			<TextBlock x:Name="TraitLabel"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       Foreground="#ffffff"
+                       TextWrapping="Wrap"/>
+
+			<!-- Cost table -->
+			<Grid ColumnDefinitions="88,*" RowDefinitions="Auto,Auto,Auto">
+
+				<TextBlock Grid.Row="0" Grid.Column="0"
+                           Text="Cost"
+                           Foreground="#444"
+                           FontSize="12"/>
+				<TextBlock x:Name="CostLabel"
+                           Grid.Row="0" Grid.Column="1"
+                           Foreground="#c00000"
+                           FontSize="12"
+                           FontWeight="Bold"/>
+
+				<TextBlock Grid.Row="1" Grid.Column="0"
+                           Text="Available"
+                           Foreground="#444"
+                           FontSize="12"
+                           Margin="0,4,0,0"/>
+				<TextBlock x:Name="AvailableLabel"
+                           Grid.Row="1" Grid.Column="1"
+                           FontSize="12"
+                           Margin="0,4,0,0"/>
+
+				<TextBlock Grid.Row="2" Grid.Column="0"
+                           Text="After"
+                           Foreground="#444"
+                           FontSize="12"
+                           Margin="0,4,0,0"/>
+				<TextBlock x:Name="AfterLabel"
+                           Grid.Row="2" Grid.Column="1"
+                           FontSize="12"
+                           Margin="0,4,0,0"/>
+
+			</Grid>
+
+			<TextBlock x:Name="WarningLabel"
+                       Text=""
+                       Foreground="#cc4400"
+                       FontSize="10"
+                       TextWrapping="Wrap"/>
+
+			<StackPanel Orientation="Horizontal"
+                        Spacing="8"
+                        HorizontalAlignment="Right">
+
+				<Button Content="Cancel"
+                        Background="#1e1e1e"
+                        Foreground="#888"
+                        BorderBrush="#2a2a2a"
+                        BorderThickness="1"
+                        Padding="16,8"
+                        CornerRadius="4"
+                        Click="OnCancel"/>
+
+				<Button x:Name="ConfirmBtn"
+                        Content="Spend XP"
+                        Background="#5a0000"
+                        Foreground="#fff"
+                        BorderBrush="#7a0000"
+                        BorderThickness="1"
+                        Padding="16,8"
+                        CornerRadius="4"
+                        Click="OnConfirm"/>
+
 			</StackPanel>
-			<StackPanel Orientation="Horizontal" Spacing="8">
-				<TextBlock Text="Available:" Foreground="#666" FontSize="12" Width="80"/>
-				<TextBlock x:Name="AvailableLabel" FontSize="12"/>
-			</StackPanel>
-			<StackPanel Orientation="Horizontal" Spacing="8">
-				<TextBlock Text="After:" Foreground="#666" FontSize="12" Width="80"/>
-				<TextBlock x:Name="AfterLabel" FontSize="12"/>
-			</StackPanel>
+
 		</StackPanel>
+	</Border>
 
-		<!-- Warning if insufficient -->
-		<TextBlock x:Name="WarningLabel"
-                   Text=""
-                   Foreground="#cc4400"
-                   FontSize="11"
-                   TextWrapping="Wrap"/>
-
-		<!-- Buttons -->
-		<StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
-			<Button Content="Cancel"
-                    Background="#2a2a2a"
-                    Foreground="#e0e0e0"
-                    BorderBrush="#444"
-                    Padding="14,7"
-                    Click="OnCancel"/>
-			<Button x:Name="ConfirmBtn"
-                    Content="Spend XP"
-                    Background="#5a0000"
-                    Foreground="#fff"
-                    BorderBrush="#900000"
-                    Padding="14,7"
-                    Click="OnConfirm"/>
-		</StackPanel>
-
-	</StackPanel>
 </Window>

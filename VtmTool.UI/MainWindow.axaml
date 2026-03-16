@@ -3,214 +3,315 @@
         xmlns:ui="clr-namespace:VtmTool.UI"
         x:Class="VtmTool.UI.MainWindow"
         Title="VtM V5 — Character Tool"
-        Width="1340" Height="800"
-        MinWidth="900" MinHeight="600"
-        Background="#1a1a1a">
+        Width="1360" Height="820"
+        MinWidth="920" MinHeight="620"
+        Background="#141414">
 
 	<Window.Styles>
+
+		<!-- ── Base text ──────────────────────────────────────────────────── -->
 		<Style Selector="TextBlock">
-			<Setter Property="Foreground" Value="#e0e0e0"/>
+			<Setter Property="Foreground" Value="#d8d8d8"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
-			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="FontSize" Value="12"/>
 		</Style>
+
+		<!-- ── Section header — left-border accent ───────────────────────── -->
 		<Style Selector="TextBlock.section">
-			<Setter Property="Foreground" Value="#b00000"/>
-			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Foreground" Value="#c00000"/>
+			<Setter Property="FontSize" Value="10"/>
 			<Setter Property="FontWeight" Value="Bold"/>
-			<Setter Property="LetterSpacing" Value="2"/>
-			<Setter Property="Margin" Value="0,12,0,4"/>
+			<Setter Property="LetterSpacing" Value="3"/>
+			<Setter Property="Margin" Value="0,16,0,6"/>
 		</Style>
+
+		<!-- ── Character name — larger, white ────────────────────────────── -->
 		<Style Selector="TextBlock.charName">
 			<Setter Property="Foreground" Value="#ffffff"/>
-			<Setter Property="FontSize" Value="20"/>
+			<Setter Property="FontSize" Value="22"/>
 			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="LetterSpacing" Value="1"/>
 		</Style>
+
+		<!-- ── Subtitle line (clan · gen · humanity) ─────────────────────── -->
 		<Style Selector="TextBlock.subtitle">
-			<Setter Property="Foreground" Value="#999"/>
-			<Setter Property="FontSize" Value="12"/>
-			<Setter Property="Margin" Value="0,2,0,0"/>
+			<Setter Property="Foreground" Value="#888"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Margin" Value="0,3,0,0"/>
 		</Style>
+
+		<!-- ── Stat label (left col of each stat row) ────────────────────── -->
+		<Style Selector="TextBlock.statLabel">
+			<Setter Property="Foreground" Value="#888"/>
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+
+		<!-- ── Dot ratings ───────────────────────────────────────────────── -->
+		<Style Selector="TextBlock.dots">
+			<Setter Property="Foreground" Value="#b82000"/>
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+
+		<!-- ── Damage / hunger tracks ────────────────────────────────────── -->
+		<Style Selector="TextBlock.track">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="Foreground" Value="#aaa"/>
+		</Style>
+
+		<Style Selector="TextBlock.hunger">
+			<Setter Property="Foreground" Value="#c00000"/>
+			<Setter Property="FontSize" Value="12"/>
+		</Style>
+
+		<!-- ── Empty state placeholder ───────────────────────────────────── -->
+		<Style Selector="TextBlock.placeholder">
+			<Setter Property="Foreground" Value="#333"/>
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+			<Setter Property="LetterSpacing" Value="1"/>
+		</Style>
+
+		<!-- ── Sidebar character list item ───────────────────────────────── -->
 		<Style Selector="Button.charItem">
 			<Setter Property="Background" Value="Transparent"/>
 			<Setter Property="BorderThickness" Value="0"/>
 			<Setter Property="HorizontalAlignment" Value="Stretch"/>
 			<Setter Property="HorizontalContentAlignment" Value="Left"/>
-			<Setter Property="Padding" Value="12,8"/>
+			<Setter Property="Padding" Value="14,10"/>
 			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="CornerRadius" Value="0"/>
 		</Style>
 		<Style Selector="Button.charItem:pointerover /template/ ContentPresenter">
-			<Setter Property="Background" Value="#2a2a2a"/>
+			<Setter Property="Background" Value="#202020"/>
 		</Style>
 		<Style Selector="Button.charItem.selected /template/ ContentPresenter">
-			<Setter Property="Background" Value="#2e0000"/>
+			<Setter Property="Background" Value="#280000"/>
 		</Style>
-		<Style Selector="Button.action">
-			<Setter Property="Background" Value="#2a0000"/>
-			<Setter Property="Foreground" Value="#e0e0e0"/>
-			<Setter Property="BorderBrush" Value="#5a0000"/>
-			<Setter Property="BorderThickness" Value="1"/>
-			<Setter Property="Padding" Value="14,7"/>
-			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
-			<Setter Property="FontSize" Value="12"/>
-			<Setter Property="Cursor" Value="Hand"/>
-		</Style>
-		<Style Selector="Button.action:pointerover /template/ ContentPresenter">
-			<Setter Property="Background" Value="#3d0000"/>
-		</Style>
+
+		<!-- ── Primary button (New Character) ────────────────────────────── -->
 		<Style Selector="Button.primary">
 			<Setter Property="Background" Value="#5a0000"/>
 			<Setter Property="Foreground" Value="#ffffff"/>
-			<Setter Property="BorderBrush" Value="#900000"/>
+			<Setter Property="BorderBrush" Value="#7a0000"/>
 			<Setter Property="BorderThickness" Value="1"/>
-			<Setter Property="Padding" Value="14,8"/>
+			<Setter Property="Padding" Value="14,9"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
 			<Setter Property="FontSize" Value="12"/>
 			<Setter Property="Cursor" Value="Hand"/>
 			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="CornerRadius" Value="4"/>
 		</Style>
 		<Style Selector="Button.primary:pointerover /template/ ContentPresenter">
-			<Setter Property="Background" Value="#750000"/>
+			<Setter Property="Background" Value="#720000"/>
 		</Style>
-		<Style Selector="TextBlock.statLabel">
-			<Setter Property="Foreground" Value="#aaa"/>
-			<Setter Property="Width" Value="110"/>
-			<Setter Property="FontSize" Value="12"/>
+		<Style Selector="Button.primary:pressed /template/ ContentPresenter">
+			<Setter Property="Background" Value="#3d0000"/>
 		</Style>
-		<Style Selector="TextBlock.dots">
-			<Setter Property="Foreground" Value="#cc2200"/>
-			<Setter Property="FontSize" Value="13"/>
-			<Setter Property="VerticalAlignment" Value="Center"/>
-		</Style>
-		<Style Selector="TextBlock.track">
-			<Setter Property="FontSize" Value="12"/>
-			<Setter Property="VerticalAlignment" Value="Center"/>
+
+		<!-- ── Action buttons (toolbar) ──────────────────────────────────── -->
+		<Style Selector="Button.action">
+			<Setter Property="Background" Value="#1e1e1e"/>
+			<Setter Property="Foreground" Value="#c0c0c0"/>
+			<Setter Property="BorderBrush" Value="#333"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Padding" Value="12,6"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="CornerRadius" Value="4"/>
 		</Style>
-		<Style Selector="TextBlock.hunger">
-			<Setter Property="Foreground" Value="#cc0000"/>
-			<Setter Property="FontSize" Value="13"/>
-		</Style>
-		<Style Selector="TextBlock.placeholder">
-			<Setter Property="Foreground" Value="#444"/>
-			<Setter Property="FontSize" Value="14"/>
-			<Setter Property="HorizontalAlignment" Value="Center"/>
-			<Setter Property="VerticalAlignment" Value="Center"/>
-		</Style>
-		<Style Selector="NumericUpDown /template/ TextBox">
+		<Style Selector="Button.action:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#2a0000"/>
 			<Setter Property="Foreground" Value="#e0e0e0"/>
-			<Setter Property="Background" Value="Transparent"/>
 		</Style>
+		<Style Selector="Button.action:pressed /template/ ContentPresenter">
+			<Setter Property="Background" Value="#1a0000"/>
+		</Style>
+
 	</Window.Styles>
 
 	<!-- Three columns: sidebar | sheet | roller -->
-	<Grid ColumnDefinitions="220,1,*,1,300">
+	<Grid ColumnDefinitions="224,1,*,1,310">
 
 		<!-- ── LEFT SIDEBAR ─────────────────────────────────── -->
-		<DockPanel Grid.Column="0" Background="#111">
+		<DockPanel Grid.Column="0" Background="#0e0e0e">
+			<Border DockPanel.Dock="Top"
+                    Padding="14,14,14,10"
+                    BorderBrush="#1a1a1a"
+                    BorderThickness="0,0,0,1">
+				<StackPanel Spacing="2">
+					<TextBlock Text="VtM V5"
+                               FontSize="15"
+                               FontWeight="Bold"
+                               Foreground="#c00000"
+                               LetterSpacing="2"/>
+					<TextBlock Text="Character Tool"
+                               FontSize="10"
+                               Foreground="#444"
+                               LetterSpacing="1"/>
+				</StackPanel>
+			</Border>
+
 			<Button Classes="primary"
                     DockPanel.Dock="Top"
-                    Margin="10,10,10,4"
+                    Margin="10,10,10,6"
                     Click="OnNewCharacter">
 				+ New Character
 			</Button>
+
+			<TextBlock DockPanel.Dock="Top"
+                       Text="CHARACTERS"
+                       FontSize="9"
+                       Foreground="#333"
+                       LetterSpacing="2"
+                       Margin="14,8,0,4"/>
+			
 			<Separator DockPanel.Dock="Top" Margin="10,4" Background="#2a2a2a" Height="1"/>
 			<ScrollViewer VerticalScrollBarVisibility="Auto">
 				<StackPanel x:Name="CharacterList" Spacing="1"/>
 			</ScrollViewer>
 		</DockPanel>
 
-		<Rectangle Grid.Column="1" Fill="#2a2a2a"/>
+		<Rectangle Grid.Column="1" Fill="#1e1e1e"/>
 
 		<!-- ── CHARACTER SHEET ──────────────────────────────── -->
-		<Grid Grid.Column="2">
+		<Grid Grid.Column="2"  Background="#141414">
 
 			<TextBlock x:Name="EmptyState" Classes="placeholder" Text="Select or create a character"/>
 
 			<Grid x:Name="SheetPanel" IsVisible="False" RowDefinitions="*,Auto,Auto,Auto">
-				<DockPanel Grid.Row="0" Margin="24,20,24,0">
-					<!-- Action toolbar -->
-					<WrapPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,16,0,0">
-						<Button Classes="action" Margin="0,0,6,6" Click="OnRouse">Rouse Check</Button>
-						<Button Classes="action" Margin="0,0,6,6" Click="OnDamage">Apply Damage</Button>
-						<Button Classes="action" Margin="0,0,6,6" Click="OnHeal">Heal</Button>
-						<Button Classes="action" Margin="0,0,6,6" Click="OnEditAttr">Edit Attributes</Button>
-						<Button Classes="action" Margin="0,0,6,6" Click="OnEditSkills">Edit Skills</Button>
-						<Button Classes="action" Margin="0,0,6,6" Click="OnEditDisciplines">Edit Disciplines</Button>
-						<Button Classes="action" Margin="0,0,0,6" Click="OnDelete">Delete</Button>
-					</WrapPanel>
+				<DockPanel Grid.Row="0" Margin="28,22,28,0">
+
+					<Border DockPanel.Dock="Bottom"
+                            BorderBrush="#1e1e1e"
+                            BorderThickness="0,1,0,0"
+                            Padding="0,12,0,12">
+						<WrapPanel Orientation="Horizontal">
+							<Button Classes="action" Margin="0,0,6,4" Click="OnRouse">Rouse Check</Button>
+							<Button Classes="action" Margin="0,0,6,4" Click="OnDamage">Apply Damage</Button>
+							<Button Classes="action" Margin="0,0,6,4" Click="OnHeal">Heal</Button>
+							<Button Classes="action" Margin="0,0,6,4" Click="OnEditAttr">Edit Attributes</Button>
+							<Button Classes="action" Margin="0,0,6,4" Click="OnEditSkills">Edit Skills</Button>
+							<Button Classes="action" Margin="0,0,6,4" Click="OnEditDisciplines">Edit Disciplines</Button>
+							<Button Classes="action" Margin="0,0,0,4" Click="OnDelete">Delete</Button>
+						</WrapPanel>
+					</Border>
 
 					<ScrollViewer VerticalScrollBarVisibility="Auto">
-						<StackPanel Spacing="0">
+						<StackPanel Spacing="0" Margin="0,0,0,16">
 
 							<TextBlock x:Name="SheetName" Classes="charName"/>
 							<TextBlock x:Name="SheetSubtitle" Classes="subtitle"/>
-							<TextBlock x:Name="SheetBloodPotency" Classes="subtitle" Margin="0,2,0,0"/>
-							<TextBlock x:Name="SheetPredatorType" Classes="subtitle" Margin="0,2,0,0"/>
+							<TextBlock x:Name="SheetBloodPotency" Classes="subtitle"/>
+							<TextBlock x:Name="SheetPredatorType" Classes="subtitle"/>
 
-							<TextBlock Classes="section" Text="ATTRIBUTES"/>
-							<!-- Attribute columns rebuilt dynamically in RefreshSheet -->
+							<Border BorderBrush="#c00000"
+                                    BorderThickness="2,0,0,0"
+                                    Padding="8,0,0,0"
+                                    Margin="0,18,0,6">
+								<TextBlock Classes="section"
+                                           Text="ATTRIBUTES"
+                                           Margin="0"/>
+							</Border>
+
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="*"/>
 									<ColumnDefinition Width="*"/>
 									<ColumnDefinition Width="*"/>
 								</Grid.ColumnDefinitions>
-								<StackPanel x:Name="AttrPhysicalPanel" Grid.Column="0" Spacing="3"/>
-								<StackPanel x:Name="AttrSocialPanel"   Grid.Column="1" Spacing="3"/>
-								<StackPanel x:Name="AttrMentalPanel"   Grid.Column="2" Spacing="3"/>
+								<StackPanel x:Name="AttrPhysicalPanel" Grid.Column="0" Spacing="4"/>
+								<StackPanel x:Name="AttrSocialPanel"   Grid.Column="1" Spacing="4"/>
+								<StackPanel x:Name="AttrMentalPanel"   Grid.Column="2" Spacing="4"/>
 							</Grid>
 
-							<TextBlock Classes="section" Text="SKILLS"/>
-							<!-- Skill columns rebuilt dynamically in RefreshSheet -->
+							<Border BorderBrush="#c00000"
+                                    BorderThickness="2,0,0,0"
+                                    Padding="8,0,0,0"
+                                    Margin="0,18,0,6">
+								<TextBlock Classes="section" Text="SKILLS" Margin="0"/>
+							</Border>
+
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="*"/>
 									<ColumnDefinition Width="*"/>
 									<ColumnDefinition Width="*"/>
 								</Grid.ColumnDefinitions>
-								<StackPanel x:Name="SkillPhysicalPanel" Grid.Column="0" Spacing="3"/>
-								<StackPanel x:Name="SkillSocialPanel"   Grid.Column="1" Spacing="3"/>
-								<StackPanel x:Name="SkillMentalPanel"   Grid.Column="2" Spacing="3"/>
+								<StackPanel x:Name="SkillPhysicalPanel" Grid.Column="0" Spacing="4"/>
+								<StackPanel x:Name="SkillSocialPanel"   Grid.Column="1" Spacing="4"/>
+								<StackPanel x:Name="SkillMentalPanel"   Grid.Column="2" Spacing="4"/>
 							</Grid>
 
-							<TextBlock Classes="section" Text="DISCIPLINES"/>
+							<Border BorderBrush="#c00000"
+                                    BorderThickness="2,0,0,0"
+                                    Padding="8,0,0,0"
+                                    Margin="0,18,0,6">
+								<TextBlock Classes="section" Text="DISCIPLINES" Margin="0"/>
+							</Border>
 							<StackPanel x:Name="DisciplinePanel" Spacing="6"/>
 
-							<TextBlock Classes="section" Text="SPECIALTIES"/>
+							<Border BorderBrush="#c00000"
+                                    BorderThickness="2,0,0,0"
+                                    Padding="8,0,0,0"
+                                    Margin="0,18,0,6">
+								<TextBlock Classes="section" Text="SPECIALTIES" Margin="0"/>
+							</Border>
 							<StackPanel x:Name="SpecialtiesPanel" Spacing="3"/>
 
-							<TextBlock Classes="section" Text="HEALTH &amp; WILLPOWER"/>
+							<Border BorderBrush="#c00000"
+                                    BorderThickness="2,0,0,0"
+                                    Padding="8,0,0,0"
+                                    Margin="0,18,0,6">
+								<TextBlock Classes="section" Text="HEALTH &amp; WILLPOWER" Margin="0"/>
+							</Border>
 							<StackPanel Spacing="6">
 								<StackPanel Orientation="Horizontal" Spacing="10">
-									<TextBlock Classes="statLabel" Text="Health"/>
+									<TextBlock Classes="statLabel" Text="Health" Width="80"/>
 									<TextBlock x:Name="TrackHealth" Classes="track"/>
-									<TextBlock x:Name="WoundPenalty" Foreground="#cc0000" FontSize="12" VerticalAlignment="Center"/>
+									<TextBlock x:Name="WoundPenalty"
+                                               Foreground="#c00000"
+                                               FontSize="11"
+                                               VerticalAlignment="Center"/>
 								</StackPanel>
 								<StackPanel Orientation="Horizontal" Spacing="10">
-									<TextBlock Classes="statLabel" Text="Willpower"/>
+									<TextBlock Classes="statLabel" Text="Willpower" Width="80"/>
 									<TextBlock x:Name="TrackWillpower" Classes="track"/>
 								</StackPanel>
 							</StackPanel>
 
-							<TextBlock Classes="section" Text="HUNGER"/>
+							<Border BorderBrush="#c00000"
+                                    BorderThickness="2,0,0,0"
+                                    Padding="8,0,0,0"
+                                    Margin="0,18,0,6">
+								<TextBlock Classes="section" Text="HUNGER" Margin="0"/>
+							</Border>
 							<TextBlock x:Name="TrackHunger" Classes="hunger"/>
 
 							<TextBlock x:Name="StatusMsg"
-									   Foreground="#888"
-									   FontSize="12"
-									   Margin="0,14,0,0"
-									   TextWrapping="Wrap"/>
+                                       Foreground="#444"
+                                       FontSize="11"
+                                       Margin="0,16,0,0"
+                                       TextWrapping="Wrap"/>
 
 						</StackPanel>
 					</ScrollViewer>
 				</DockPanel>
-				<ui:NotesPanel x:Name="NotesPanel" Grid.Row="1" Margin="24,0,24,12"/>
-				<ui:XpPanel x:Name="XpPanel" Grid.Row="2" Margin="24,0,24,12"/>
-				<ui:TraitsPanel x:Name="TraitsPanel" Grid.Row="3" Margin="24,0,24,12"/>
+
+				<ui:NotesPanel   x:Name="NotesPanel"   Grid.Row="1" Margin="0,0,0,0"/>
+				<ui:XpPanel      x:Name="XpPanel"       Grid.Row="2" Margin="0,0,0,0"/>
+				<ui:TraitsPanel  x:Name="TraitsPanel"   Grid.Row="3" Margin="0,0,0,0"/>
+				
 			</Grid>
 		</Grid>
 
-		<Rectangle Grid.Column="3" Fill="#2a2a2a"/>
+		<Rectangle Grid.Column="3" Fill="#1e1e1e"/>
 
 		<!-- ── DICE ROLLER PANEL ─────────────────────────────── -->
 		<ui:DiceRollerPanel x:Name="Roller" Grid.Column="4"/>

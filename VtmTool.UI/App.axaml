@@ -1,15 +1,74 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="VtmTool.UI."
+             x:Class="VtmTool.UI.App"
              RequestedThemeVariant="Dark">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.Styles>
         <FluentTheme />
 		<StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
+
 		<Style Selector="NumericUpDown /template/ TextBox">
 			<Setter Property="Foreground" Value="#e0e0e0"/>
-			<Setter Property="CaretBrush" Value="#e0e0e0"/>
+			<Setter Property="CaretBrush" Value="#cc2200"/>
+		</Style>
+
+		<Style Selector="ComboBoxItem">
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="Foreground" Value="#e0e0e0"/>
+		</Style>
+
+		<Style Selector="ScrollBar">
+			<Setter Property="Background" Value="Transparent"/>
+		</Style>
+		<Style Selector="ScrollBar /template/ Border#PART_Root">
+			<Setter Property="Background" Value="Transparent"/>
+		</Style>
+
+		<Style Selector="Expander">
+			<Setter Property="Padding" Value="0"/>
+		</Style>
+		<Style Selector="Expander /template/ ToggleButton">
+			<Setter Property="Padding" Value="0"/>
+			<Setter Property="Background" Value="Transparent"/>
+		</Style>
+		<Style Selector="Expander /template/ ToggleButton:pointerover /template/ Border">
+			<Setter Property="Background" Value="Transparent"/>
+		</Style>
+
+		<Style Selector="Separator">
+			<Setter Property="Background" Value="#252525"/>
+			<Setter Property="Height" Value="1"/>
+		</Style>
+
+		<Style Selector="RadioButton">
+			<Setter Property="Foreground" Value="#aaa"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="12"/>
+		</Style>
+		<Style Selector="RadioButton:checked">
+			<Setter Property="Foreground" Value="#e0e0e0"/>
+		</Style>
+
+		<Style Selector="CheckBox">
+			<Setter Property="Foreground" Value="#aaa"/>
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="12"/>
+		</Style>
+
+		<Style Selector="TextBox:focus /template/ Border">
+			<Setter Property="BorderBrush" Value="#5a0000"/>
+		</Style>
+
+		<Style Selector="TabItem">
+			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Foreground" Value="#666"/>
+			<Setter Property="Padding" Value="10,6"/>
+		</Style>
+		<Style Selector="TabItem:selected">
+			<Setter Property="Foreground" Value="#e0e0e0"/>
 		</Style>
     </Application.Styles>
 </Application>

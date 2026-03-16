@@ -2,174 +2,211 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
-			 Background="#111"
-             x:Class="VtmTool.UI.DiceRollerPanel">
+             x:Class="VtmTool.UI.DiceRollerPanel"
+			 Background="#0e0e0e">
 	<UserControl.Styles>
 
 		<Style Selector="TextBlock">
-			<Setter Property="Foreground" Value="#e0e0e0"/>
+			<Setter Property="Foreground" Value="#c0c0c0"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
 			<Setter Property="FontSize" Value="12"/>
 		</Style>
 
-		<Style Selector="TextBlock.header">
-			<Setter Property="Foreground" Value="#b00000"/>
-			<Setter Property="FontSize" Value="11"/>
+		<Style Selector="TextBlock.rollerHeader">
+			<Setter Property="Foreground" Value="#c00000"/>
+			<Setter Property="FontSize" Value="9"/>
 			<Setter Property="FontWeight" Value="Bold"/>
-			<Setter Property="LetterSpacing" Value="2"/>
-			<Setter Property="Margin" Value="0,10,0,4"/>
+			<Setter Property="LetterSpacing" Value="3"/>
+			<Setter Property="Margin" Value="0,12,0,4"/>
 		</Style>
 
 		<Style Selector="TextBlock.poolTotal">
 			<Setter Property="Foreground" Value="#ffffff"/>
-			<Setter Property="FontSize" Value="28"/>
+			<Setter Property="FontSize" Value="32"/>
 			<Setter Property="FontWeight" Value="Bold"/>
 		</Style>
 
 		<Style Selector="TextBlock.poolLabel">
-			<Setter Property="Foreground" Value="#888"/>
-			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Foreground" Value="#555"/>
+			<Setter Property="FontSize" Value="10"/>
 			<Setter Property="TextWrapping" Value="Wrap"/>
 		</Style>
 
+		<Style Selector="TextBlock.fieldLabel">
+			<Setter Property="Foreground" Value="#444"/>
+			<Setter Property="FontSize" Value="10"/>
+			<Setter Property="LetterSpacing" Value="1"/>
+			<Setter Property="Margin" Value="0,8,0,2"/>
+		</Style>
+
 		<Style Selector="ComboBox">
-			<Setter Property="Background" Value="#1e1e1e"/>
-			<Setter Property="Foreground" Value="#e0e0e0"/>
-			<Setter Property="BorderBrush" Value="#333"/>
+			<Setter Property="Background" Value="#161616"/>
+			<Setter Property="Foreground" Value="#c0c0c0"/>
+			<Setter Property="BorderBrush" Value="#2a2a2a"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
 			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="CornerRadius" Value="4"/>
 		</Style>
 
+		<!-- Roll button — bold, full width, distinct -->
 		<Style Selector="Button.roll">
-			<Setter Property="Background" Value="#7a0000"/>
+			<Setter Property="Background" Value="#6e0000"/>
 			<Setter Property="Foreground" Value="#ffffff"/>
-			<Setter Property="BorderBrush" Value="#b00000"/>
+			<Setter Property="BorderBrush" Value="#8a0000"/>
 			<Setter Property="BorderThickness" Value="1"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
-			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="FontSize" Value="13"/>
 			<Setter Property="FontWeight" Value="Bold"/>
+			<!--<Setter Property="LetterSpacing" Value="2"/>-->
 			<Setter Property="HorizontalAlignment" Value="Stretch"/>
 			<Setter Property="HorizontalContentAlignment" Value="Center"/>
-			<Setter Property="Padding" Value="0,10"/>
+			<Setter Property="Padding" Value="0,12"/>
 			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="CornerRadius" Value="4"/>
 		</Style>
 		<Style Selector="Button.roll:pointerover /template/ ContentPresenter">
-			<Setter Property="Background" Value="#990000"/>
+			<Setter Property="Background" Value="#880000"/>
+		</Style>
+		<Style Selector="Button.roll:pressed /template/ ContentPresenter">
+			<Setter Property="Background" Value="#500000"/>
 		</Style>
 		<Style Selector="Button.roll:disabled /template/ ContentPresenter">
-			<Setter Property="Background" Value="#2a2a2a"/>
-			<Setter Property="Opacity" Value="0.5"/>
+			<Setter Property="Background" Value="#1a1a1a"/>
+			<Setter Property="Opacity" Value="0.4"/>
 		</Style>
 
-		<Style Selector="Button.small">
-			<Setter Property="Background" Value="#2a0000"/>
-			<Setter Property="Foreground" Value="#e0e0e0"/>
-			<Setter Property="BorderBrush" Value="#5a0000"/>
+		<!-- Small +/- buttons -->
+		<Style Selector="Button.nudge">
+			<Setter Property="Background" Value="#1a1a1a"/>
+			<Setter Property="Foreground" Value="#888"/>
+			<Setter Property="BorderBrush" Value="#2a2a2a"/>
 			<Setter Property="BorderThickness" Value="1"/>
 			<Setter Property="Padding" Value="8,4"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
-			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontSize" Value="13"/>
 			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="CornerRadius" Value="4"/>
+			<Setter Property="Width" Value="32"/>
 		</Style>
-		<Style Selector="Button.small:pointerover /template/ ContentPresenter">
-			<Setter Property="Background" Value="#3d0000"/>
+		<Style Selector="Button.nudge:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#2a0000"/>
+			<Setter Property="Foreground" Value="#cc2200"/>
 		</Style>
 
 		<Style Selector="CheckBox">
-			<Setter Property="Foreground" Value="#aaa"/>
+			<Setter Property="Foreground" Value="#666"/>
 			<Setter Property="FontFamily" Value="Consolas,Courier New,monospace"/>
-			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="FontSize" Value="11"/>
+		</Style>
+		<Style Selector="CheckBox:checked">
+			<Setter Property="Foreground" Value="#c00000"/>
 		</Style>
 
 	</UserControl.Styles>
-
-	<DockPanel Margin="14,14,14,14">
+	<DockPanel>
+		<Rectangle DockPanel.Dock="Top" Height="2" Fill="#2a0000"/>
+		<DockPanel Margin="16,12,16,16">
 
 		<!-- ── POOL BUILDER ─────────────────────────────────────── -->
 		<StackPanel DockPanel.Dock="Top" Spacing="0">
 
-			<TextBlock Classes="header" Text="DICE POOL"/>
+			<TextBlock Classes="rollerHeader" Text="DICE POOL"/>
 
-			<!-- Attribute selector -->
-			<TextBlock Text="Attribute" Foreground="#666" FontSize="11" Margin="0,6,0,2"/>
-			<ComboBox x:Name="AttrBox" HorizontalAlignment="Stretch" SelectionChanged="OnSelectionChanged"/>
+			<TextBlock Classes="fieldLabel" Text="ATTRIBUTE"/>
+			<ComboBox x:Name="AttrBox"
+					  HorizontalAlignment="Stretch"
+					  SelectionChanged="OnSelectionChanged"/>
 
-			<!-- Skill selector -->
-			<TextBlock Text="Skill" Foreground="#666" FontSize="11" Margin="0,6,0,2"/>
-			<ComboBox x:Name="SkillBox" HorizontalAlignment="Stretch" SelectionChanged="OnSelectionChanged"/>
+			<TextBlock Classes="fieldLabel" Text="SKILL"/>
+			<ComboBox x:Name="SkillBox"
+					  HorizontalAlignment="Stretch"
+					  SelectionChanged="OnSelectionChanged"/>
 
 			<!-- Modifier row -->
-			<Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8,0,0">
-				<TextBlock Grid.Column="0" Text="Modifier" Foreground="#666" FontSize="11"
-                           VerticalAlignment="Center"/>
-				<Button Grid.Column="1" Classes="small" Content=" − " Click="OnModDown" Margin="0,0,4,0"/>
-				<Button Grid.Column="2" Classes="small" Content=" + " Click="OnModUp"/>
+			<Grid ColumnDefinitions="*,8,Auto,4,Auto" Margin="0,10,0,0">
+				<TextBlock Grid.Column="0"
+						   Text="MODIFIER"
+						   Classes="fieldLabel"
+						   VerticalAlignment="Center"
+						   Margin="0"/>
+				<Button Grid.Column="2" Classes="nudge" Content="−" Click="OnModDown"/>
+				<Button Grid.Column="4" Classes="nudge" Content="+" Click="OnModUp"/>
 			</Grid>
 			<TextBlock x:Name="ModLabel"
-                       Text="0"
-                       Foreground="#aaa"
-                       FontSize="13"
-                       Margin="0,2,0,0"/>
+					   Text="+0"
+					   Foreground="#c00000"
+					   FontSize="12"
+					   FontWeight="Bold"
+					   Margin="0,2,0,0"/>
 
-			<!-- Willpower toggle -->
-			<CheckBox x:Name="WillpowerCheck" Content="Spend Willpower (+3 dice)" Margin="0,8,0,0" IsCheckedChanged="OnCheckedChanged"/>
+			<CheckBox x:Name="WillpowerCheck"
+                          Content="Spend Willpower  (+3 dice)"
+                          Margin="0,10,0,0"
+                          IsCheckedChanged="OnCheckedChanged"/>
 
-			<!-- Wound penalty note -->
 			<TextBlock x:Name="WoundNote"
-                       Text=""
-                       Foreground="#cc0000"
-                       FontSize="11"
-                       Margin="0,4,0,0"/>
+                           Text=""
+                           Foreground="#c00000"
+                           FontSize="10"
+                           Margin="0,4,0,0"/>
 
 			<!-- Pool total display -->
-			<Border Background="#1a1a1a"
+			<Border Background="#0a0a0a"
                     BorderBrush="#2a2a2a"
                     BorderThickness="1"
-                    Margin="0,10,0,0"
-                    Padding="12,8">
+					CornerRadius="4"
+                    Margin="0,12,0,0"
+                    Padding="14,10">
 				<Grid ColumnDefinitions="Auto,*">
 					<TextBlock x:Name="PoolTotalLabel"
-                               Grid.Column="0"
-                               Classes="poolTotal"
-                               Text="0"
-                               VerticalAlignment="Center"/>
-					<StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-						<TextBlock Text="DICE" Foreground="#666" FontSize="10" LetterSpacing="1"/>
+							   Grid.Column="0"
+							   Classes="poolTotal"
+							   Text="—"
+							   VerticalAlignment="Center"/>
+					<StackPanel Grid.Column="1"
+								Margin="14,0,0,0"
+								VerticalAlignment="Center">
+						<TextBlock Text="DICE"
+								   Foreground="#2a2a2a"
+								   FontSize="9"
+								   LetterSpacing="2"/>
 						<TextBlock x:Name="PoolBreakdownLabel"
-                                   Classes="poolLabel"
-                                   Text="—"/>
+								   Classes="poolLabel"
+								   Text="select attribute + skill"/>
 					</StackPanel>
 				</Grid>
 			</Border>
 
-			<!-- Difficulty selector -->
-			<Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8,0,0">
-				<TextBlock Grid.Column="0" Text="Difficulty" Foreground="#666" FontSize="11"
-                           VerticalAlignment="Center"/>
-				<Button Grid.Column="1" Classes="small" Content=" − " Click="OnDiffDown" Margin="0,0,4,0"/>
-				<Button Grid.Column="2" Classes="small" Content=" + " Click="OnDiffUp"/>
+			<Grid ColumnDefinitions="*,8,Auto,4,Auto" Margin="0,10,0,0">
+				<TextBlock Grid.Column="0"
+						   Text="DIFFICULTY"
+						   Classes="fieldLabel"
+						   VerticalAlignment="Center"
+						   Margin="0"/>
+				<Button Grid.Column="2" Classes="nudge" Content="−" Click="OnDiffDown"/>
+				<Button Grid.Column="4" Classes="nudge" Content="+" Click="OnDiffUp"/>
 			</Grid>
 			<TextBlock x:Name="DiffLabel"
-                       Text="Difficulty: 1"
-                       Foreground="#aaa"
-                       FontSize="12"
-                       Margin="0,2,0,8"/>
+					   Text="1"
+					   Foreground="#888"
+					   FontSize="11"
+					   Margin="0,2,0,10"/>
 
-			<!-- Roll button -->
 			<Button Classes="roll"
-                    x:Name="RollBtn"
-                    Content="ROLL"
-                    Click="OnRoll"/>
+                        x:Name="RollBtn"
+                        Content="ROLL"
+                        Click="OnRoll"/>
 
 		</StackPanel>
 
-		<!-- ── ROLL HISTORY ─────────────────────────────────────── -->
-		<ScrollViewer DockPanel.Dock="Top"
-                      VerticalScrollBarVisibility="Auto"
-                      Margin="0,12,0,0">
-			<StackPanel x:Name="HistoryPanel" Spacing="10"/>
+		<TextBlock DockPanel.Dock="Top"
+						Classes="rollerHeader"
+						Text="RESULTS"/>
+
+		<ScrollViewer VerticalScrollBarVisibility="Auto">
+			<StackPanel x:Name="HistoryPanel" Spacing="8"/>
 		</ScrollViewer>
 
+	</DockPanel>
 	</DockPanel>
 </UserControl>
